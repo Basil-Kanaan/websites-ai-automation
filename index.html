@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Basil Kanaan · AI and automation for Ontario businesses</title>
+    <meta name="description" content="There's a divide between businesses and the technology built to help them. I set up AI receptionists, automatic follow-ups, review requests and more for businesses in Brampton and across Ontario." />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#100F0D" />
+    <link rel="canonical" href="https://basil-kanaan.github.io/websites-ai-automation/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="There's a divide between businesses and the technology built to help them." />
+    <meta property="og:description" content="Basil Kanaan sets up AI and automation for businesses in Brampton and across Ontario." />
+    <meta property="og:url" content="https://basil-kanaan.github.io/websites-ai-automation/" />
+    <meta property="og:image" content="https://basil-kanaan.github.io/websites-ai-automation/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A drawing of two banks with a gap between them: your business on one side, what exists today on the other." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      // Runs before first paint: styles that need JavaScript are scoped to html.js, and the
+      // held chapters to html.motion, which is left off when reduced motion is asked for.
+      // Setting it here, not in the motion bundle, means the layout never jumps at load.
+      // A reload starts from the top instead of landing in the middle of a held chapter.
+      document.documentElement.classList.add('js');
+      // ?for=web opens on the website chapter, for businesses that have no website yet.
+      if (/[?&]for=web(&|$)/.test(location.search)) document.documentElement.classList.add('for-web');
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('motion');
+        history.scrollRestoration = 'manual';
+      }
+    </script>
+    <script>
+      // Google Analytics 4, the same property as the portfolio, grouped as "bridge".
+      // Outreach links carry one slug instead of five UTM parameters:
+      //   ?s=<campaign>.<content>   e.g. ?s=trades-oct.e1-missed-calls
+      // The first dot-separated part becomes utm_campaign, the rest utm_content, with
+      // utm_source=email and utm_medium=outreach (?src=linkedin overrides the source).
+      // Plain utm_* links still work as usual. ?notrack=1 turns tracking off in this
+      // browser (for checking your own links); ?notrack=0 turns it back on.
+      (function () {
+        var GA_ID = 'G-LQ5PKB2K76';
+        var url = new URL(location.href);
+        var p = url.searchParams;
+        try {
+          if (p.has('notrack')) localStorage.setItem('notrack', p.get('notrack') === '0' ? '' : '1');
+          if (localStorage.getItem('notrack')) GA_ID = '';
+        } catch (e) {}
+        var slug = (p.get('s') || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 100);
+        if (slug) {
+          var parts = slug.split('.');
+          p.set('utm_source', p.get('src') || 'email');
+          p.set('utm_medium', 'outreach');
+          p.set('utm_campaign', parts[0]);
+          if (parts.length > 1) p.set('utm_content', parts.slice(1).join('.'));
+          p.delete('s');
+          p.delete('src');
+          // Keep the address bar clean, so a forwarded link is not counted as this opener.
+          var clean = new URL(url);
+          ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) { clean.searchParams.delete(k); });
+          history.replaceState(history.state, '', clean.pathname + clean.search + clean.hash);
+        }
+        window.track = function () {};
+        if (!/^G-[A-Z0-9]{6,}$/.test(GA_ID) || /^(localhost|127\.)/.test(location.hostname)) return;
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        window.gtag = gtag;
+        gtag('js', new Date());
+        var config = { page_location: url.href, content_group: 'bridge' };
+        if (slug) config.outreach_slug = slug;
+        if (p.get('for') === 'web') config.page_variant = 'web';
+        gtag('config', GA_ID, config);
+        window.track = function (name, params) { gtag('event', name, params || {}); };
+
+        // The clicks that mean a prospect is ready to talk.
+        document.addEventListener('click', function (e) {
+          var a = e.target.closest && e.target.closest('a[href]');
+          if (!a) return;
+          var href = a.getAttribute('href');
+          var where = { location: a.getAttribute('data-loc') || (a.closest('section') || {}).id || 'page' };
+          if (/^tel:/i.test(href)) track('call_click', where);
+          else if (/^sms:/i.test(href)) track('text_click', where);
+          else if (/^mailto:/i.test(href)) track('email_click', where);
+          else if (a.hasAttribute('data-book')) track('book_click', where);
+        });
+
+        // How far a visitor reads: one event per chapter, the first time its top passes 60% of the screen.
+        document.addEventListener('DOMContentLoaded', function () {
+          if (!('IntersectionObserver' in window)) return;
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+              if (!en.isIntersecting) return;
+              io.unobserve(en.target);
+              track('section_view', { section: en.target.id });
+            });
+          }, { rootMargin: '0px 0px -40% 0px' });
+          ['read', 'ai', 'experience', 'me', 'systems', 'leaks', 'build', 'start', 'contact'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) io.observe(el);
+          });
+        });
+
+        // gtag.js waits until the page has loaded and gone idle, so it stays off the
+        // critical path; the events above queue in dataLayer until then.
+        addEventListener('load', function () {
+          (window.requestIdleCallback || setTimeout)(function () {
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+            document.head.appendChild(s);
+          }, { timeout: 3000 });
+        });
+      })();
+    </script>
+    <link rel="stylesheet" href="/src/styles/main.css" />
+    <noscript>
+      <style>
+        @font-face { font-family: 'Newsreader'; src: url('/websites-ai-automation/fonts/newsreader.woff2') format('woff2'); font-weight: 400 500; font-display: swap; }
+      </style>
+    </noscript>
+    <script type="module" src="/src/boot.ts"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Line icons, drawn on a 24 unit grid and stroked in CSS. -->
+    <svg class="sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2" /><path d="M11 18.3h2" /></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.6 7.2 12 13l8.4-5.8" /></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2" /><path d="M3.5 9.5h17M8 3v4M16 3v4M8 13.5h2M14 13.5h2M8 17h2" /></symbol>
+      <symbol id="i-invoice" viewBox="0 0 24 24"><path d="M6 2.8h12v18.4l-2.4-1.5-2.4 1.5-2.4-1.5-2.4 1.5L6 19.7z" /><path d="M9 8h6M9 11.5h6M9 15h4" /></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.8l2.47 5.8 6.28.56-4.76 4.14 1.42 6.14L12 16.2l-5.41 3.24 1.42-6.14L3.25 9.16l6.28-.56z" /></symbol>
+      <symbol id="i-voice" viewBox="0 0 24 24"><path d="M3 12h1.5M7 8.5v7M11 4.5v15M15 7.5v9M19 10v4M21 12h.5" /></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 17h-9.5l-4.5 3.5V17H4a1.5 1.5 0 0 1-1.5-1.5v-9A1.5 1.5 0 0 1 4 5z" /><path d="M7.5 10h9M7.5 13h6" /></symbol>
+      <symbol id="i-flow" viewBox="0 0 24 24"><rect x="2.5" y="3.5" width="6" height="5" rx="1" /><rect x="15.5" y="3.5" width="6" height="5" rx="1" /><rect x="9" y="15.5" width="6" height="5" rx="1" /><path d="M8.5 6h7M18.5 8.5v2.5a1.5 1.5 0 0 1-1.5 1.5h-5v3M5.5 8.5v2.5A1.5 1.5 0 0 0 7 12.5h5" /></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.5 5 13.5h6l-1 8 8-11h-6z" /></symbol>
+      <symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9.5 9.5h5v5h-5zM9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5" /></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" /></symbol>
+      <symbol id="i-cross" viewBox="0 0 24 24"><path d="m7 7 10 10M17 7 7 17" /></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v15M6.5 13.5 12 19l5.5-5.5" /></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m15.5 15.5 5 5" /></symbol>
+      <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 2.5h8l4 4v15H6z" /><path d="M14 2.5v4h4M9 11h6M9 14.5h6M9 18h4" /></symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24"><path d="m4 20 1-5L15.5 4.5a2.1 2.1 0 0 1 3 3L8 18z" /><path d="m13.5 6.5 3 3" /></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z" /></symbol>
+      <symbol id="i-revive" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4.5V11h-6.5" /></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" /><path d="M10 21h4" /></symbol>
+      <symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2.5v19M16.5 6.5c-.8-1.4-2.4-2-4.5-2-2.6 0-4.5 1.3-4.5 3.4 0 4.9 9.5 2.6 9.5 7.6 0 2.1-2 3.6-4.8 3.6-2.3 0-4.1-.8-4.9-2.4" /></symbol>
+      <symbol id="i-inbox" viewBox="0 0 24 24"><path d="m3 13.5 2.5-8h13l2.5 8v5.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19z" /><path d="M3 13.5h5l1.5 2.5h5l1.5-2.5h5" /></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5" /><path d="M3 9h18M3 14.5h18M9.5 4v16" /></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.5 20.5h17M6.5 17v-5M10.5 17V8M14.5 17v-7M18.5 17V5" /></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13.5c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5zM12 6.5V20" /></symbol>
+      <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.2a6.5 6.5 0 0 1 3.5 5.8" /></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15.5-5-5L5 21" /></symbol>
+      <symbol id="i-browser" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2" /><path d="M2.5 8.5h19M6 6.3h.01M8.5 6.3h.01" /></symbol>
+      <symbol id="i-reply" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5A5.5 5.5 0 0 1 20 14.5V20" /></symbol>
+      <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 3.8a4.6 4.6 0 0 0-5.5 6.1l-5.6 5.6a1.9 1.9 0 0 0 2.7 2.7l5.6-5.6a4.6 4.6 0 0 0 6.1-5.5l-2.7 2.7-2.6-.5-.5-2.6z" /></symbol>
+      <symbol id="i-food" viewBox="0 0 24 24"><path d="M6.5 3v6.5a2 2 0 0 0 4 0V3M8.5 11.5V21M17 21V3c-2 1.2-3 3.5-3 6.5V13h3" /></symbol>
+      <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.5" /><circle cx="6" cy="17.5" r="2.5" /><path d="M8.1 8 20 18.5M8.1 16 20 5.5" /></symbol>
+      <symbol id="i-house" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7M6 9.3V20h12V9.3M10 20v-5.5h4V20" /></symbol>
+      <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5.2a1.7 1.7 0 0 1 1.7-1.7h2.6A1.7 1.7 0 0 1 15 5.2V7M3 12.5h18" /></symbol>
+      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1.2 12.5H6.2zM9 8V6.5a3 3 0 0 1 6 0V8" /></symbol>
+      <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.5" /><path d="M5 20.5a7 7 0 0 1 14 0" /></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 5 6.3v5.2c0 4.3 2.9 7.7 7 9 4.1-1.3 7-4.7 7-9V6.3z" /><path d="m9 12 2.2 2.2L15.3 10" /></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></symbol>
+    </svg>
+
+    <header class="bar" data-bar>
+      <div class="bar__inner">
+        <a class="bar__home" href="#top" data-scroll-to>
+          <span class="bar__name">Basil Kanaan</span>
+          <span class="bar__chapter" aria-hidden="true" data-chapter-label></span>
+        </a>
+        <a class="bar__call" href="https://cal.com/qurra-basil/discovery" target="_blank" rel="noopener" data-book data-loc="header">
+          <svg class="ico" aria-hidden="true"><use href="#i-calendar" /></svg>
+          <span class="bar__call-long">Book a 20-minute call</span>
+          <span class="bar__call-short">Book</span>
+        </a>
+      </div>
+      <!-- Reading progress, drawn as the deck of a bridge going down plank by plank. -->
+      <div class="bar__deck" aria-hidden="true"><span class="bar__deck-fill" data-progress></span></div>
+    </header>
+
+    <main id="main" tabindex="-1">
+
+      <!-- 01 The divide, online. Only with ?for=web: the opening for businesses with no
+           website. The hero chapter after it then reads as the next step. ------------- -->
+      <section class="web" id="web" aria-labelledby="web-title" data-chapter="01|The divide">
+        <div class="web__inner wrap">
+          <p class="eyebrow">Websites, AI and automation for Ontario businesses</p>
+          <h2 class="hero__title web__title" id="web-title">Before they call, they look you up.</h2>
+          <div class="web__grid">
+            <div class="fact">
+              <p class="fact__num">76.3%</p>
+              <p class="fact__text">of Canadians 15 and older looked up goods or services online in a 3-month span.</p>
+            </div>
+            <div class="fact fact--now">
+              <p class="fact__num">58.5%</p>
+              <p class="fact__text">booked an appointment online.</p>
+            </div>
+          </div>
+          <p class="source">Source: Statistics Canada, <a class="link" href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=2210013701" target="_blank" rel="noopener">Canadian Internet Use Survey, 2022, table 22-10-0137-01<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+          <p class="hero__lede web__lede">With no website, the questions they would have called about go unanswered: what you do, where, your hours, your prices, how to book. I'm Basil, and I build that website first, then the systems behind it.</p>
+          <div class="hero__actions">
+            <a class="button" href="#hero" data-scroll-to>See what comes after<svg class="ico" aria-hidden="true"><use href="#i-down" /></svg></a>
+            <a class="button button--ghost" href="https://cal.com/qurra-basil/discovery" target="_blank" rel="noopener" data-book data-loc="web">Book a 20-minute call</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- 01 The divide. The hero holds the screen and its drawing becomes the evidence:
+           100 businesses, the 19.2% who used AI crossing over, the 40.0% who said it
+           isn't relevant. Then the same dots as office and admin tasks: the 90% AI could
+           do or speed up cross over, and the 34% it covers in real use fill in. ------ -->
+      <section class="s1" id="top" aria-labelledby="hero-title" data-chapter="01|The divide">
+        <div class="s1__pin" data-pin>
+          <div class="hero s1__hero" id="hero">
+            <div class="hero__copy wrap is-live" data-layer="hero">
+              <p class="eyebrow"><span class="v-default">AI, automation and websites for Ontario businesses</span><span class="v-web">Past the website</span></p>
+              <h1 class="hero__title" id="hero-title">There's a <span class="hero__divide"><span>di</span><span data-split-half>vide</span></span> between businesses and the technology built to help them.</h1>
+              <p class="hero__lede">I'm Basil, and I build the bridge.</p>
+              <div class="hero__actions">
+                <a class="button" href="#divide" data-scroll-to>See how it works<svg class="ico" aria-hidden="true"><use href="#i-down" /></svg></a>
+                <a class="button button--ghost" href="https://cal.com/qurra-basil/discovery" target="_blank" rel="noopener" data-book data-loc="hero">Book a 20-minute call</a>
+              </div>
+            </div>
+            <div class="hero__scene wrap">
+              <!-- Decorative: the same facts are in the copy around it. -->
+              <figure class="scene scene--proposed world" aria-hidden="true" data-world>
+                <div class="scene__side scene__side--biz">
+                  <div class="world__top">
+                    <div class="world__now" data-now>
+                      <p class="scene__tag">Your business</p>
+                      <ul class="scene__icons">
+                        <li style="--i: 0"><svg class="ico"><use href="#i-phone" /></svg><span>Calls</span></li>
+                        <li style="--i: 1"><svg class="ico"><use href="#i-mail" /></svg><span>Emails</span></li>
+                        <li style="--i: 2"><svg class="ico"><use href="#i-calendar" /></svg><span>Bookings</span></li>
+                        <li style="--i: 3"><svg class="ico"><use href="#i-invoice" /></svg><span>Invoices</span></li>
+                        <li style="--i: 4"><svg class="ico"><use href="#i-star" /></svg><span>Reviews</span></li>
+                      </ul>
+                    </div>
+                    <div class="world__count" data-count>
+                      <p class="world__tags"><span class="world__tag" data-tag>100 Canadian businesses</span><span class="world__tag" data-tag>100 office and admin tasks</span></p>
+                      <div class="world__dots" data-dots></div>
+                    </div>
+                  </div>
+                  <span class="scene__land"></span>
+                </div>
+                <div class="scene__gap">
+                  <svg class="scene__bridge" viewBox="0 0 300 100" preserveAspectRatio="none">
+                    <path class="scene__deck" d="M0 1H300" />
+                    <path class="scene__arch" d="M0 70Q150 -50 300 70" />
+                    <path class="scene__hangers" d="M30 1V48.4M60 1V31.6M90 1V19.6M120 1V12.4M150 1V10M180 1V12.4M210 1V19.6M240 1V31.6M270 1V48.4" />
+                  </svg>
+                  <span class="scene__dim"><span>The divide</span></span>
+                </div>
+                <div class="scene__side scene__side--tech">
+                  <div class="world__top">
+                    <div class="world__now" data-now>
+                      <p class="scene__tag">What exists today</p>
+                      <ul class="scene__icons">
+                        <li style="--i: 0"><svg class="ico"><use href="#i-voice" /></svg><span>AI voice</span></li>
+                        <li style="--i: 1"><svg class="ico"><use href="#i-chat" /></svg><span>Assistants</span></li>
+                        <li style="--i: 2"><svg class="ico"><use href="#i-flow" /></svg><span>Automations</span></li>
+                        <li style="--i: 3"><svg class="ico"><use href="#i-bolt" /></svg><span>Instant replies</span></li>
+                        <li style="--i: 4"><svg class="ico"><use href="#i-chip" /></svg><span>AI models</span></li>
+                      </ul>
+                    </div>
+                    <div class="world__count world__count--slots" data-count>
+                      <div class="world__slots">
+                        <p class="world__tag" data-tag>Used AI in the past year</p>
+                        <div class="world__dots world__dots--slots" data-slots></div>
+                      </div>
+                      <div class="world__slots">
+                        <p class="world__tag" data-tag>AI could do or speed up</p>
+                        <div class="world__dots world__dots--slots" data-slots></div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="scene__land"></span>
+                </div>
+              </figure>
+            </div>
+          </div>
+          <div class="s1__facts wrap" id="divide" tabindex="-1" data-layer="facts">
+            <h2 class="kicker"><span>01</span>The divide, in numbers</h2>
+            <div class="s1__panes">
+              <div class="s1__pane" data-layer="stats">
+                <div class="s1__grid">
+                  <div class="fact" data-fact>
+                    <p class="fact__num">19.2%</p>
+                    <p class="fact__text">of Canadian businesses used AI to produce goods or deliver services in the past year.</p>
+                  </div>
+                  <div class="fact fact--loss" data-fact>
+                    <p class="fact__num">40.0%</p>
+                    <p class="fact__text">said AI isn't relevant to their business.</p>
+                  </div>
+                </div>
+                <p class="source">Source: Statistics Canada, <a class="link" href="https://www150.statcan.gc.ca/n1/pub/11-621-m/11-621-m2026010-eng.htm" target="_blank" rel="noopener">Canadian Survey on Business Conditions, second quarter of 2026<span class="sr-only"> (opens in a new tab)</span></a>.</p>
+              </div>
+              <div class="s1__pane" data-layer="relevant">
+                <p class="s1__say">AI is relevant to far more businesses than that.</p>
+                <p class="s1__sub">Count the work instead of the businesses. Every business has office work: calls, messages, bookings, quotes and invoices.</p>
+              </div>
+              <div class="s1__pane" data-layer="reach">
+                <div class="s1__grid">
+                  <div class="fact" data-fact>
+                    <p class="fact__num">90%</p>
+                    <p class="fact__text">of office and admin tasks are ones AI could do or speed up, in theory.</p>
+                  </div>
+                  <div class="fact fact--now" data-fact>
+                    <p class="fact__num">34%</p>
+                    <p class="fact__text">are covered by real use of AI at work so far.</p>
+                  </div>
+                </div>
+                <p class="source">Source: Anthropic, <a class="link" href="https://www.anthropic.com/research/labor-market-impacts" target="_blank" rel="noopener">Labor market impacts of AI<span class="sr-only"> (opens in a new tab)</span></a>, March 2026, US jobs. Theory: rated by OpenAI researchers. Real use: measured on Claude.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="s2" id="read" data-chapter="01|The divide">
+        <div class="s2__pin wrap" data-pin>
+          <div class="s2__a">
+            <div class="readline" data-readline>
+              <p>Most owners were simply never shown what it can do for a business like theirs.</p>
+            </div>
+            <figure class="jobs" data-jobs>
+              <figcaption class="jobs__title">Work every business has in common</figcaption>
+              <ul class="jobs__biz">
+                <li><svg class="ico" aria-hidden="true"><use href="#i-wrench" /></svg>Trades</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-food" /></svg>Restaurants</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-scissors" /></svg>Salons</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-house" /></svg>Real estate</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-briefcase" /></svg>Offices</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-bag" /></svg>Retail</li>
+              </ul>
+              <svg class="jobs__wires" viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true"><line x1="50" y1="0" x2="75" y2="100" /><line x1="50" y1="0" x2="225" y2="100" /><line x1="50" y1="0" x2="375" y2="100" /><line x1="50" y1="0" x2="525" y2="100" /><line x1="150" y1="0" x2="75" y2="100" /><line x1="150" y1="0" x2="225" y2="100" /><line x1="150" y1="0" x2="375" y2="100" /><line x1="150" y1="0" x2="525" y2="100" /><line x1="250" y1="0" x2="75" y2="100" /><line x1="250" y1="0" x2="225" y2="100" /><line x1="250" y1="0" x2="375" y2="100" /><line x1="250" y1="0" x2="525" y2="100" /><line x1="350" y1="0" x2="75" y2="100" /><line x1="350" y1="0" x2="225" y2="100" /><line x1="350" y1="0" x2="375" y2="100" /><line x1="350" y1="0" x2="525" y2="100" /><line x1="450" y1="0" x2="75" y2="100" /><line x1="450" y1="0" x2="225" y2="100" /><line x1="450" y1="0" x2="375" y2="100" /><line x1="450" y1="0" x2="525" y2="100" /><line x1="550" y1="0" x2="75" y2="100" /><line x1="550" y1="0" x2="225" y2="100" /><line x1="550" y1="0" x2="375" y2="100" /><line x1="550" y1="0" x2="525" y2="100" /></svg>
+              <ul class="jobs__list">
+                <li><svg class="ico" aria-hidden="true"><use href="#i-phone" /></svg>Calls to answer</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-chat" /></svg>Messages to reply to</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-reply" /></svg>Leads and quotes to follow up</li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-star" /></svg>Reviews to ask for</li>
+              </ul>
+              <div class="jobs__flow">
+                <svg class="jobs__wires jobs__wires--gain" viewBox="0 0 600 100" preserveAspectRatio="none" aria-hidden="true"><line x1="75" y1="0" x2="300" y2="50" /><line x1="225" y1="0" x2="300" y2="50" /><line x1="375" y1="0" x2="300" y2="50" /><line x1="525" y1="0" x2="300" y2="50" /><line x1="300" y1="50" x2="100" y2="100" /><line x1="300" y1="50" x2="300" y2="100" /><line x1="300" y1="50" x2="500" y2="100" /></svg>
+                <p class="jobs__hub">With AI and automation</p>
+              </div>
+              <ul class="jobs__gain">
+                <li><svg class="ico" aria-hidden="true"><use href="#i-shield" /></svg><b>+ Credibility</b><span>Quick replies, and reviews you asked for</span></li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-dollar" /></svg><b>+ Money</b><span>Fewer missed calls and forgotten quotes</span></li>
+                <li><svg class="ico" aria-hidden="true"><use href="#i-clock" /></svg><b>+ Time</b><span>Off the phone and out of the inbox</span></li>
+              </ul>
+            </figure>
+          </div>
+          <div class="divide__you" data-you>
+            <div class="divide__you-copy">
+              <p class="divide__you-big">If that's you, it isn't your fault.</p>
+              <p class="divide__you-text">Technology moved faster than anyone running a business has time to follow. You're serving customers, answering the phone and doing the books at night.</p>
+            </div>
+            <!-- Decorative: one owner, an arm for every job, and the phone still ringing. -->
+            <figure class="busy" aria-hidden="true" data-busy>
+              <svg class="busy__svg" viewBox="0 0 400 300">
+                <path class="busy__arm" data-pair="0" d="M159 165L130 142L108 96" />
+                <path class="busy__arm" data-pair="0" d="M241 165L270 142L292 96" />
+                <path class="busy__arm" data-pair="1" d="M123 203L92 212L62 184" />
+                <path class="busy__arm" data-pair="1" d="M277 203L308 212L338 184" />
+                <path class="busy__arm" data-pair="2" d="M118 246L94 258L64 270" />
+                <path class="busy__arm" data-pair="2" d="M282 246L306 258L336 270" />
+                <path class="busy__body" d="M118 300V232C118 190 148 162 186 158Q200 156.5 214 158C252 162 282 190 282 232V300" />
+                <circle class="busy__head" cx="200" cy="112" r="26" />
+                <path class="busy__stress" d="M168 86L159 80M173 74L168 65M232 86L241 80M227 74L232 65" />
+                <g class="busy__item" data-pair="0" transform="translate(108 96)"><circle r="22" /><use href="#i-phone" x="-11" y="-11" width="22" height="22" /><g class="busy__badge" transform="translate(16 -16)"><circle r="9" /><text y="3.6">3</text></g></g>
+                <g class="busy__item" data-pair="0" transform="translate(292 96)"><circle r="22" /><use href="#i-mail" x="-11" y="-11" width="22" height="22" /><g class="busy__badge" transform="translate(16 -16)"><circle r="10" /><text y="3.6">12</text></g></g>
+                <g class="busy__item" data-pair="1" transform="translate(62 184)"><circle r="22" /><use href="#i-calendar" x="-11" y="-11" width="22" height="22" /></g>
+                <g class="busy__item" data-pair="1" transform="translate(338 184)"><circle r="22" /><use href="#i-invoice" x="-11" y="-11" width="22" height="22" /></g>
+                <g class="busy__item" data-pair="2" transform="translate(64 270)"><circle r="22" /><use href="#i-wrench" x="-11" y="-11" width="22" height="22" /></g>
+                <g class="busy__item" data-pair="2" transform="translate(336 270)"><circle r="22" /><use href="#i-chat" x="-11" y="-11" width="22" height="22" /><g class="busy__badge" transform="translate(16 -16)"><circle r="9" /><text y="3.6">5</text></g></g>
+              </svg>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 What AI really is. One line at a time, each with its part of the drawing:
+           people are broad, AI is narrow, and outside its slice it guesses. Then what to
+           give it and what to keep, sorted out of one pile, then what that adds up to. -->
+      <section class="s3" id="ai" aria-labelledby="ai-title" tabindex="-1" data-chapter="02|What AI really is">
+        <div class="s3__pin wrap" data-pin>
+          <div class="s3__copy">
+            <p class="kicker"><span>02</span>What AI really is</p>
+            <div class="s3__swap">
+              <h2 class="s3__line" id="ai-title" data-beat>AI isn't magic.</h2>
+              <p class="s3__line" data-beat>People can take on almost any kind of work.</p>
+              <p class="s3__line" data-beat>AI takes on one narrow kind, faster than anyone.</p>
+              <p class="s3__line" data-beat>Outside it, AI guesses. It isn't perfect either.</p>
+              <p class="s3__line" data-beat>So what do you give it, and what do you keep?</p>
+            </div>
+          </div>
+          <div class="s3__stage">
+            <!-- Decorative: the copy beside it says the same. -->
+            <figure class="reach" aria-hidden="true" data-reach>
+              <svg class="reach__svg" viewBox="0 0 600 300">
+                <path class="reach__base" d="M20 262H580" />
+                <path class="reach__people" d="M36 262C120 120 480 120 564 262" />
+                <path class="reach__ai" d="M214 262C246 262 250 40 262 40S278 262 310 262" />
+                <g class="reach__guesses"><text x="74" y="252">?</text><text x="124" y="240">?</text><text x="172" y="250">?</text><text x="352" y="246">?</text><text x="402" y="236">?</text><text x="452" y="250">?</text><text x="506" y="242">?</text></g>
+              </svg>
+              <p class="reach__label reach__label--people"><b>People</b>Adapt to almost any task, with context and judgment</p>
+              <p class="reach__label reach__label--ai"><b>AI</b>Fast and tireless on one narrow task</p>
+              <p class="reach__label reach__label--guess"><b>Outside it</b>AI guesses, and sounds just as sure</p>
+              <p class="reach__axis">All the kinds of work in a business</p>
+            </figure>
+            <div class="sort" data-sort>
+              <div class="sort__col sort__col--strong">
+                <h3 class="sort__head"><svg class="ico" aria-hidden="true"><use href="#i-check" /></svg>Give it to AI</h3>
+                <p class="sort__sub">Narrow, repetitive, well-defined work</p>
+                <ul class="sort__list">
+                    <li class="card">Answering the same questions, any hour</li>
+                    <li class="card">Sorting messages and pulling out the details</li>
+                    <li class="card">Following up on time, every time</li>
+                    <li class="card">Drafting replies and quotes for you to approve</li>
+                    <li class="card">Reminders, confirmations and review requests</li>
+                </ul>
+              </div>
+              <div class="sort__col sort__col--weak">
+                <h3 class="sort__head"><svg class="ico" aria-hidden="true"><use href="#i-person" /></svg>Keep it with a person</h3>
+                <p class="sort__sub">Anything that needs context, judgment or facts it wasn't given</p>
+                <ul class="sort__list">
+                    <li class="card">Anything it doesn't have the facts for. It will guess.</li>
+                    <li class="card">Judgment calls with real money on the line</li>
+                    <li class="card">Situations nobody planned for</li>
+                    <li class="card">Knowing your customers the way you do</li>
+                    <li class="card">Responsibility when something goes wrong</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <!-- What the sort adds up to: one person in front, the repetitive work behind. -->
+          <div class="army" data-layer="army">
+            <p class="army__line">So I build systems that turn one person into an army.</p>
+            <figure class="army__figure" aria-hidden="true">
+              <p class="army__tag army__tag--ai">AI on the repetitive work</p>
+              <ol class="army__ranks">
+                <li class="army__rank"><i><svg class="ico"><use href="#i-mail" /></svg></i><i><svg class="ico"><use href="#i-phone" /></svg></i><i><svg class="ico"><use href="#i-chat" /></svg></i><i><svg class="ico"><use href="#i-calendar" /></svg></i><i><svg class="ico"><use href="#i-invoice" /></svg></i><i><svg class="ico"><use href="#i-star" /></svg></i><i><svg class="ico"><use href="#i-bell" /></svg></i></li>
+                <li class="army__rank"><i><svg class="ico"><use href="#i-reply" /></svg></i><i><svg class="ico"><use href="#i-send" /></svg></i><i><svg class="ico"><use href="#i-doc" /></svg></i><i><svg class="ico"><use href="#i-inbox" /></svg></i><i><svg class="ico"><use href="#i-search" /></svg></i></li>
+                <li class="army__rank"><i><svg class="ico"><use href="#i-flow" /></svg></i><i><svg class="ico"><use href="#i-bolt" /></svg></i><i><svg class="ico"><use href="#i-revive" /></svg></i></li>
+              </ol>
+              <span class="army__lead"><svg class="ico"><use href="#i-person" /></svg></span>
+              <p class="army__tag">You and your team, in control</p>
+            </figure>
+            <p class="army__text">The best of both worlds. AI does the repetitive work, and you and your team guide it, make the decisions and stay in control.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 Who's building it. Why AI needs testing, told as an AI agent's run at an
+           ordinary business task: where it goes wrong, what the customer would get, and
+           the run after testing, with the owner approving what goes out. ------------- -->
+      <section class="xp" id="experience" aria-labelledby="xp-title" tabindex="-1" data-chapter="03|Who's building it">
+        <div class="xp__pin wrap" data-pin>
+          <div class="xp__copy">
+            <p class="kicker"><span>03</span>Who's building it</p>
+            <div class="xp__swap">
+              <h2 class="xp__line" id="xp-title" data-beat>AI agents and automations need testing.</h2>
+              <p class="xp__line" data-beat>Here's an AI agent answering one customer email.</p>
+              <p class="xp__line" data-beat>Then it has to infer something nobody wrote down. So it guesses.</p>
+              <p class="xp__line" data-beat>Every step after that builds on the guess.</p>
+              <p class="xp__line" data-beat>Nothing crashed. Your customer just got the wrong time and place.</p>
+              <p class="xp__line" data-beat>Testing finds this before a customer does.</p>
+              <p class="xp__line" data-beat>Then each step is fixed, and you approve what goes out.</p>
+              <div class="xp__line" data-beat>
+                <p>That's why the setup matters more than the tool.</p>
+                <p class="xp__sub">A business is phone, inbox, calendar and invoices, all connected, with half the rules in your head.</p>
+              </div>
+            </div>
+          </div>
+          <div class="ui ui--trace" aria-hidden="true" data-trace>
+            <div class="ui__bar"><i></i><i></i><i></i><span>AI agent</span><b data-trace-status>First run</b></div>
+            <p class="trace__task"><span>Customer email</span>&ldquo;Can you come back Thursday? Same address as last time.&rdquo;</p>
+            <div class="trace__run">
+              <ol class="trace__steps">
+                <li><span class="trace__app">Inbox</span><span class="trace__do"><span>Reads the email</span></span><i class="trace__mark"><svg class="ico"><use href="#i-check" /></svg></i></li>
+                <li><span class="trace__app">Customers</span><span class="trace__do"><span>Finds their record</span></span><i class="trace__mark"><svg class="ico"><use href="#i-check" /></svg></i></li>
+                <li data-fail><span class="trace__app">Past jobs</span><span class="trace__do"><span>Guesses the address and picks the billing one</span><span>Looks up the site address from the last job</span></span><i class="trace__mark"><svg class="ico"><use href="#i-cross" /></svg><svg class="ico"><use href="#i-check" /></svg></i><em class="trace__why">Had to infer</em></li>
+                <li data-fail><span class="trace__app">Calendar</span><span class="trace__do"><span>Books Thursday 9&nbsp;am, when the crew is out</span><span>Checks the crew's calendar for 2 open times</span></span><i class="trace__mark"><svg class="ico"><use href="#i-cross" /></svg><svg class="ico"><use href="#i-check" /></svg></i><em class="trace__why">Crossed 2 systems</em></li>
+                <li data-fail><span class="trace__app">Inbox</span><span class="trace__do"><span>Confirms the wrong time and place</span><span>Sends both times, after you approve</span></span><i class="trace__mark"><svg class="ico"><use href="#i-cross" /></svg><svg class="ico"><use href="#i-check" /></svg></i><em class="trace__why">Built on a guess</em></li>
+              </ol>
+              <span class="trace__scan" data-scan></span>
+            </div>
+            <div class="trace__out" data-out>
+              <p class="trace__out-head"><span>What the customer gets</span><b data-trace-sum>3 of 5 steps wrong</b></p>
+              <p class="trace__msg"><span>&ldquo;Confirmed: Thursday at 9&nbsp;am, at 48 King St.&rdquo;</span><span>&ldquo;Thursday works. We can be at 12 Elm St at 10:30&nbsp;am or 2&nbsp;pm. Which is better?&rdquo;</span></p>
+              <p class="trace__flags"><span class="trace__bad"><em>Wrong address</em><em>The crew is out</em></span><span class="trace__ok"><em><svg class="ico"><use href="#i-check" /></svg>You approved it first</em></span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 Who's building it. Each line of the background wires up one layer of the
+           network. ------------------------------------------------------------------ -->
+      <section class="s4" id="me" aria-labelledby="me-title" tabindex="-1" data-chapter="03|Who's building it">
+        <div class="s4__pin wrap" data-pin>
+          <div class="s4__copy">
+            <h2 class="title" id="me-title">I learned how AI works, not just how to use it.</h2>
+            <dl class="spec">
+              <div class="spec__row"><dt>Education</dt><dd>Honours Bachelor of Science, Computer Science Specialist, University of Toronto, with High Distinction</dd></div>
+              <div class="spec__row"><dt>Studied</dt><dd>Artificial intelligence, machine learning and neural networks</dd></div>
+              <div class="spec__row"><dt>Experience</dt><dd>Founding engineer and acting CTO at an AI startup</dd></div>
+              <div class="spec__row"><dt>AI training</dt><dd>Prompt engineering and AI agent evaluation at Outlier</dd></div>
+            </dl>
+          </div>
+          <figure class="net" data-net>
+            <div class="net__frame">
+              <!-- include:partials/net.html -->
+              <span class="net__label" style="--x: 12.3%">Input</span>
+              <span class="net__label" style="--x: 50.4%">Hidden layers</span>
+              <span class="net__label" style="--x: 87.7%">Output</span>
+            </div>
+            <figcaption class="net__caption">A neural network, the core of modern AI. It learns patterns from examples. That's why it's excellent at repetition and unreliable with facts it never saw.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 03 One person, the output of a team. The chapter holds while the 3 systems
+           slide past sideways, and each one runs as you scroll. ---------------------- -->
+      <section class="s5" id="systems" aria-labelledby="systems-title" tabindex="-1" data-chapter="03|Who's building it">
+        <div class="s5__pin" data-pin>
+          <div class="s5__head wrap">
+            <h2 class="title" id="systems-title">One person. The output of a team.</h2>
+            <p class="lede">I run my own business on systems I built for myself. Here are 3 of them.</p>
+          </div>
+          <div class="s5__viewport">
+            <ol class="s5__track" data-track>
+          <li class="system s5__panel">
+            <div class="system__text">
+              <p class="system__meta"><span>01</span>Sales</p>
+              <h3 class="system__title">Cold email engine</h3>
+              <p class="system__line">Builds targeted lists of businesses, researches each one and sends personal emails on a schedule.</p>
+            </div>
+            <div class="ui ui--pipeline" aria-hidden="true" data-ui="pipeline">
+              <div class="ui__bar"><i></i><i></i><i></i><span>Outreach</span><b data-pipe-count>0 sent</b></div>
+              <div class="pipeline__head"><span>Business</span><span><svg class="ico"><use href="#i-search" /></svg>Found</span><span><svg class="ico"><use href="#i-doc" /></svg>Researched</span><span><svg class="ico"><use href="#i-pen" /></svg>Written</span><span><svg class="ico"><use href="#i-send" /></svg>Sent</span></div>
+              <ul class="pipeline__rows">
+                <li><span>Roofing<span class="pipeline__city">Brampton</span></span><i></i><i></i><i></i><i></i></li>
+                <li><span>Landscaping<span class="pipeline__city">Caledon</span></span><i></i><i></i><i></i><i></i></li>
+                <li><span>Dental<span class="pipeline__city">Mississauga</span></span><i></i><i></i><i></i><i></i></li>
+                <li><span>HVAC<span class="pipeline__city">Vaughan</span></span><i></i><i></i><i></i><i></i></li>
+                <li><span>Bakery<span class="pipeline__city">Oakville</span></span><i></i><i></i><i></i><i></i></li>
+              </ul>
+            </div>
+          </li>
+          <li class="system s5__panel">
+            <div class="system__text">
+              <p class="system__meta"><span>02</span>Sales</p>
+              <h3 class="system__title">Power dialer</h3>
+              <p class="system__line">Dials the next lead the moment a call ends, and pulls up their website and CRM notes as it rings. I have the script and a minute of research before they pick up.</p>
+            </div>
+            <div class="ui ui--dialer" aria-hidden="true" data-ui="dialer">
+              <div class="ui__bar"><i></i><i></i><i></i><span>Dialer</span><b data-dial-count>Call 1 of 40</b></div>
+              <div class="dialer__now">
+                <span class="dialer__ring"><svg class="ico"><use href="#i-phone" /></svg></span>
+                <div class="dialer__who">
+                  <span class="dialer__status" data-dial-status>Calling</span>
+                  <strong data-dial-name>Landscaping · Caledon</strong>
+                </div>
+                <span class="dialer__time" data-dial-time>00:00</span>
+              </div>
+              <div class="dialer__lead" data-dial-lead>
+                <div class="dialer__site"><span class="dialer__url"><svg class="ico"><use href="#i-browser" /></svg>Their website</span><div class="mockup__site" data-dial-site><b></b><i></i><i></i><span></span><span></span></div></div>
+                <dl class="dialer__facts">
+                  <div><dt>Reviews</dt><dd data-dial-reviews>4.7 from 52</dd></div>
+                  <div><dt>Website</dt><dd data-dial-web>No online booking</dd></div>
+                  <div><dt>Last contact</dt><dd data-dial-last>None yet</dd></div>
+                </dl>
+              </div>
+              <div class="dialer__script"><span>Script</span><i></i><i></i><i></i></div>
+              <div class="dialer__outcomes"><span data-outcome="0">Interested</span><span data-outcome="1">Call back</span><span data-outcome="2">No answer</span><span data-outcome="3">Not now</span></div>
+              <p class="dialer__logged" data-dial-logged><svg class="ico"><use href="#i-check" /></svg>Logged to CRM</p>
+            </div>
+          </li>
+          <li class="system s5__panel">
+            <div class="system__text">
+              <p class="system__meta"><span>03</span>Marketing</p>
+              <h3 class="system__title">Mockup video generator</h3>
+              <p class="system__line">Turns any website into a polished device mockup video, ready to post. Content for my socials without filming a thing.</p>
+            </div>
+            <div class="ui ui--mockup" aria-hidden="true" data-ui="mockup">
+              <div class="ui__bar"><i></i><i></i><i></i><span>Render</span><b data-mock-status>Rendering</b></div>
+              <div class="mockup__stage">
+                <div class="mockup__laptop">
+                  <div class="mockup__screen"><div class="mockup__site" data-mock-site><b></b><i></i><i></i><span></span><span></span><span></span><i></i><i></i><b></b><i></i></div></div>
+                  <div class="mockup__base"></div>
+                </div>
+                <div class="mockup__phone">
+                  <div class="mockup__screen"><div class="mockup__site mockup__site--phone" data-mock-site><b></b><i></i><span></span><span></span><i></i><b></b><i></i><i></i></div></div>
+                </div>
+              </div>
+              <div class="mockup__feed" data-mock-feed><span></span><span></span><span></span><span></span><span></span><span class="is-new"></span></div>
+            </div>
+          </li>
+              <li class="s5__panel s5__panel--end">
+                <p class="army__close">Now I set up the same kind of leverage for <em>other businesses.</em></p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 Where you're losing. One leak at a time: an example of the customers or money
+           it costs, then the fix. A tally at the top counts the leaks fixed. ---------- -->
+      <section class="s6" id="leaks" aria-labelledby="leaks-title" tabindex="-1" data-chapter="04|Where you're losing">
+        <div class="s6__pin wrap" data-pin>
+          <p class="s6__track" aria-hidden="true"><span class="s6__ticks"><i></i><i></i><i></i><i></i><i></i><i></i></span><span><b data-sealed>0</b> of 6 leaks fixed</span></p>
+          <div class="s6__layer s6__intro" data-step>
+            <div class="s6__text">
+              <p class="kicker"><span>04</span>Where you're losing</p>
+              <h2 class="title" id="leaks-title">Most businesses don't lose money in one big hole.</h2>
+              <p class="lede">They lose it through small leaks nobody has time to fix. Here are 6 of the most common.</p>
+            </div>
+            <ol class="leakmap" aria-hidden="true">
+              <li><b>01</b><span>Missed calls</span><em><i>Leaking</i><i>AI receptionist</i></em></li>
+              <li><b>02</b><span>Slow replies</span><em><i>Leaking</i><i>Instant replies</i></em></li>
+              <li><b>03</b><span>Quotes that go quiet</span><em><i>Leaking</i><i>Follow-ups</i></em></li>
+              <li><b>04</b><span>No-shows and late payments</span><em><i>Leaking</i><i>Reminders</i></em></li>
+              <li><b>05</b><span>Old leads gone cold</span><em><i>Leaking</i><i>Lead revival</i></em></li>
+              <li><b>06</b><span>Reviews never asked for</span><em><i>Leaking</i><i>Review requests</i></em></li>
+            </ol>
+          </div>
+          <ol class="s6__leaks">
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 01</p>
+                <h3 class="leak__title">Missed calls</h3>
+                <p class="leak__why">When you can't pick up, plenty of callers just try the next business on the list.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>An AI receptionist answers every call, day or night, and books the job or takes a message.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>6 calls come in while you're on a job.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0"><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 1" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 2"><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 3"><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 4" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 5"><svg class="ico"><use href="#i-person" /></svg></i></div>
+                  <p class="vig__drop">Hung up</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>2 of 6</b> callers hang up and try the next business.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>6 of 6</b> calls are answered.</span>
+                </p>
+              </figure>
+            </li>
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 02</p>
+                <h3 class="leak__title">Slow replies</h3>
+                <p class="leak__why">An enquiry that waits until tonight may already be talking to someone else.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>Instant, personal replies to every form, text and email.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>5 enquiries arrive at 9&nbsp;am. You reply at 8&nbsp;pm.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0"><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 1" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 2"><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 3" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 4"><svg class="ico"><use href="#i-person" /></svg></i></div>
+                  <p class="vig__drop">Booked elsewhere</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>2 of 5</b> booked someone else before you replied.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>5 of 5</b> hear back within a minute.</span>
+                </p>
+              </figure>
+            </li>
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 03</p>
+                <h3 class="leak__title">Quotes that go quiet</h3>
+                <p class="leak__why">Plenty of quotes never get a no. They just get forgotten.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>Polite follow-ups that go out on schedule until you get an answer.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>4 quotes go out this month, $2,000 each.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0"><svg class="ico"><use href="#i-doc" /></svg><small>$2,000</small></i><i class="tok" style="--i: 1" data-lost><svg class="ico"><use href="#i-doc" /></svg><small>$2,000</small></i><i class="tok" style="--i: 2" data-lost><svg class="ico"><use href="#i-doc" /></svg><small>$2,000</small></i><i class="tok" style="--i: 3"><svg class="ico"><use href="#i-doc" /></svg><small>$2,000</small></i></div>
+                  <p class="vig__drop">Gone quiet</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>$4,000</b> in quotes goes quiet. Nobody followed up.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>4 of 4</b> quotes get a follow-up.</span>
+                </p>
+              </figure>
+            </li>
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 04</p>
+                <h3 class="leak__title">No-shows and late payments</h3>
+                <p class="leak__why">An empty slot and an unpaid invoice cost you the same way: time you gave for nothing.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>Reminders before every appointment and every due date.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>6 appointments and 3 invoices this week.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0"><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 1"><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 2" data-lost><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 3"><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 4"><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 5"><svg class="ico"><use href="#i-calendar" /></svg></i><i class="tok" style="--i: 6"><svg class="ico"><use href="#i-invoice" /></svg><small>$550</small></i><i class="tok" style="--i: 7" data-lost><svg class="ico"><use href="#i-invoice" /></svg><small>$550</small></i><i class="tok" style="--i: 8" data-lost><svg class="ico"><use href="#i-invoice" /></svg><small>$550</small></i></div>
+                  <p class="vig__drop">No-show or paid late</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>$1,100</b> paid a month late, and 1 no-show.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>9 of 9</b> visits and due dates get a reminder.</span>
+                </p>
+              </figure>
+            </li>
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 05</p>
+                <h3 class="leak__title">Old leads gone cold</h3>
+                <p class="leak__why">Past enquiries and customers already know you. Most never hear from you again.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>A well-timed message that brings them back.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>10 past customers are on file.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 1" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 2" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 3" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 4" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 5" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 6" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 7" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 8" data-lost><svg class="ico"><use href="#i-person" /></svg></i><i class="tok" style="--i: 9" data-lost><svg class="ico"><use href="#i-person" /></svg></i></div>
+                  <p class="vig__drop">Never contacted</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>0 of 10</b> heard from you this year.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>10 of 10</b> hear from you again.</span>
+                </p>
+              </figure>
+            </li>
+            <li class="s6__layer s6__leak" data-step>
+              <div class="s6__text">
+                <p class="leak__num">Leak 06</p>
+                <h3 class="leak__title">Reviews never asked for</h3>
+                <p class="leak__why">Happy customers rarely leave a review unless someone asks.</p>
+                <p class="leak__fix" data-fix><span>The fix</span>A review request at the right moment, with one tap to post.</p>
+              </div>
+              <figure class="vig" aria-hidden="true" data-vig>
+                <p class="vig__scene"><span>Example</span>10 happy customers this month.</p>
+                <div class="vig__lanes">
+                  <div class="vig__row"><i class="tok" style="--i: 0" data-done><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 1" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 2" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 3" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 4" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 5" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 6" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 7" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 8" data-lost><svg class="ico"><use href="#i-star" /></svg></i><i class="tok" style="--i: 9" data-lost><svg class="ico"><use href="#i-star" /></svg></i></div>
+                  <p class="vig__drop">Never asked</p>
+                </div>
+                <p class="vig__out">
+                  <span class="vig__lost"><small>Without the fix</small><b>1 of 10</b> left a review. Nobody asked the rest.</span>
+                  <span class="vig__kept"><small>With the fix</small><b>10 of 10</b> are asked for a review.</span>
+                </p>
+              </figure>
+            </li>
+          </ol>
+          <div class="s6__layer s6__close" data-step>
+            <div class="s6__text">
+              <p class="leaks__close">Each fix is small. Together, they change how the business <em>feels to run.</em></p>
+            </div>
+            <ol class="leakmap is-fixed" aria-hidden="true">
+              <li><b>01</b><span>Missed calls</span><em><i>Leaking</i><i>AI receptionist</i></em></li>
+              <li><b>02</b><span>Slow replies</span><em><i>Leaking</i><i>Instant replies</i></em></li>
+              <li><b>03</b><span>Quotes that go quiet</span><em><i>Leaking</i><i>Follow-ups</i></em></li>
+              <li><b>04</b><span>No-shows and late payments</span><em><i>Leaking</i><i>Reminders</i></em></li>
+              <li><b>05</b><span>Old leads gone cold</span><em><i>Leaking</i><i>Lead revival</i></em></li>
+              <li><b>06</b><span>Reviews never asked for</span><em><i>Leaking</i><i>Review requests</i></em></li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 What I'd build ---------------------------------------------------------- -->
+      <section class="menu wrap" id="build" aria-labelledby="build-title" tabindex="-1" data-chapter="05|What I'd build">
+        <p class="kicker"><span>05</span>What I'd build</p>
+        <h2 class="title" id="build-title">What I can set up for your business.</h2>
+        <p class="lede">Start with one fix or connect them all. Everything is built around the tools you already use.</p>
+        <div class="fit" role="group" aria-labelledby="fit-label" data-fit>
+          <p class="fit__label" id="fit-label">Show what fits</p>
+          <div class="fit__chips">
+            <button class="chip" type="button" aria-pressed="true" data-fit-key="all">All</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="trades">Trades and home services</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="food">Restaurants and food</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="wellness">Salons and wellness</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="realty">Real estate</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="pro">Professional services</button>
+            <button class="chip" type="button" aria-pressed="false" data-fit-key="retail">Retail</button>
+          </div>
+          <p class="fit__count" aria-live="polite" data-fit-count></p>
+        </div>
+        <div class="menu__groups">
+          <section class="group" aria-labelledby="g1">
+            <h3 class="group__title" id="g1">Answer every customer</h3>
+            <ul class="group__list">
+              <li class="svc" data-for="trades food wellness realty pro"><svg class="ico" aria-hidden="true"><use href="#i-voice" /></svg><p><strong>AI receptionist</strong>Answers calls 24/7, books jobs and takes messages.</p></li>
+              <li class="svc" data-for="trades wellness realty pro"><svg class="ico" aria-hidden="true"><use href="#i-chat" /></svg><p><strong>Missed-call text back</strong>Texts anyone you couldn't pick up, within seconds.</p></li>
+              <li class="svc" data-for="food retail pro realty"><svg class="ico" aria-hidden="true"><use href="#i-browser" /></svg><p><strong>Website chat assistant</strong>Answers visitors' questions from your own information.</p></li>
+              <li class="svc" data-for="trades realty pro wellness retail"><svg class="ico" aria-hidden="true"><use href="#i-bolt" /></svg><p><strong>Instant enquiry replies</strong>Every form and email gets a reply right away.</p></li>
+            </ul>
+          </section>
+          <section class="group" aria-labelledby="g2">
+            <h3 class="group__title" id="g2">Follow up automatically</h3>
+            <ul class="group__list">
+              <li class="svc" data-for="trades pro"><svg class="ico" aria-hidden="true"><use href="#i-send" /></svg><p><strong>Quote follow-ups</strong>Polite nudges until you get a yes or a no.</p></li>
+              <li class="svc" data-for="trades realty wellness pro retail"><svg class="ico" aria-hidden="true"><use href="#i-revive" /></svg><p><strong>Lead revival</strong>Brings past enquiries and customers back.</p></li>
+              <li class="svc" data-for="wellness pro trades food"><svg class="ico" aria-hidden="true"><use href="#i-bell" /></svg><p><strong>Appointment reminders</strong>Text and email reminders before every booking.</p></li>
+              <li class="svc" data-for="trades pro"><svg class="ico" aria-hidden="true"><use href="#i-dollar" /></svg><p><strong>Payment reminders</strong>Invoices followed up on schedule, politely.</p></li>
+            </ul>
+          </section>
+          <section class="group" aria-labelledby="g3">
+            <h3 class="group__title" id="g3">Grow your reputation</h3>
+            <ul class="group__list">
+              <li class="svc" data-for="trades food wellness realty pro retail"><svg class="ico" aria-hidden="true"><use href="#i-star" /></svg><p><strong>Review requests</strong>Asks happy customers at the right moment.</p></li>
+              <li class="svc" data-for="food wellness retail trades"><svg class="ico" aria-hidden="true"><use href="#i-reply" /></svg><p><strong>Review replies</strong>Drafted responses to every review, for you to approve.</p></li>
+              <li class="svc" data-for="trades realty pro wellness"><svg class="ico" aria-hidden="true"><use href="#i-people" /></svg><p><strong>Referral requests</strong>Asks your best customers to pass your name on.</p></li>
+              <li class="svc" data-for="trades food wellness realty retail"><svg class="ico" aria-hidden="true"><use href="#i-image" /></svg><p><strong>Social content</strong>Turns your finished work into posts that are ready to go.</p></li>
+            </ul>
+          </section>
+          <section class="group" aria-labelledby="g4">
+            <h3 class="group__title" id="g4">Run lighter</h3>
+            <ul class="group__list">
+              <li class="svc" data-for="pro realty retail trades"><svg class="ico" aria-hidden="true"><use href="#i-inbox" /></svg><p><strong>Inbox sorting</strong>Emails sorted, summarised and drafted for you.</p></li>
+              <li class="svc" data-for="pro trades retail realty"><svg class="ico" aria-hidden="true"><use href="#i-table" /></svg><p><strong>Data entry</strong>Details pulled from forms, PDFs and receipts.</p></li>
+              <li class="svc" data-for="wellness food pro trades"><svg class="ico" aria-hidden="true"><use href="#i-calendar" /></svg><p><strong>Online booking</strong>Customers book themselves into your open slots.</p></li>
+              <li class="svc" data-for="trades food wellness realty pro retail"><svg class="ico" aria-hidden="true"><use href="#i-chart" /></svg><p><strong>Weekly numbers</strong>The figures that matter, in your inbox every Monday.</p></li>
+              <li class="svc" data-for="food retail trades pro"><svg class="ico" aria-hidden="true"><use href="#i-book" /></svg><p><strong>Procedures assistant</strong>Answers your team's questions from your own procedures.</p></li>
+            </ul>
+          </section>
+          <section class="group group--site" aria-labelledby="g5">
+            <h3 class="group__title" id="g5">Be found</h3>
+            <ul class="group__list">
+              <li class="svc" data-for="trades food wellness realty pro retail"><svg class="ico" aria-hidden="true"><use href="#i-browser" /></svg><p><strong>A website that works</strong>Fast, clear and built to turn visits into enquiries, connected to everything above.</p></li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+
+      <!-- 06 How we start. The 4 steps build the bridge in the hero's drawing. ------ -->
+      <section class="s8" id="start" aria-labelledby="start-title" tabindex="-1" data-chapter="06|How we start">
+        <div class="s8__pin" data-pin>
+          <div class="s8__head wrap">
+            <p class="kicker"><span>06</span>How we start</p>
+            <h2 class="title" id="start-title">4 steps to the other side.</h2>
+          </div>
+          <ol class="s8__steps wrap">
+          <li class="s8__step" data-step>
+            <p class="step__num">01</p>
+            <h3 class="step__title">A free 20-minute call</h3>
+            <p class="step__line">You walk me through a normal week. I listen for the leaks.</p>
+          </li>
+          <li class="s8__step" data-step>
+            <p class="step__num">02</p>
+            <h3 class="step__title">Your leak map</h3>
+            <p class="step__line">A short plan: what to fix first, what it costs and what it should save you.</p>
+          </li>
+          <li class="s8__step" data-step>
+            <p class="step__num">03</p>
+            <h3 class="step__title">Build and connect</h3>
+            <p class="step__line">Set up around the tools you already use. Nothing goes live until you approve it.</p>
+          </li>
+          <li class="s8__step" data-step>
+            <p class="step__num">04</p>
+            <h3 class="step__title">It runs. I look after it.</h3>
+            <p class="step__line">You get your hours back. I keep it working as your business changes.</p>
+          </li>
+          </ol>
+          <div class="s8__world wrap">
+            <figure class="scene world world--build" aria-hidden="true" data-build-world>
+              <div class="scene__side scene__side--biz">
+                <p class="scene__tag">Your business</p>
+                <ul class="scene__icons">
+                        <li style="--i: 0"><svg class="ico"><use href="#i-phone" /></svg><span>Calls</span></li>
+                        <li style="--i: 1"><svg class="ico"><use href="#i-mail" /></svg><span>Emails</span></li>
+                        <li style="--i: 2"><svg class="ico"><use href="#i-calendar" /></svg><span>Bookings</span></li>
+                        <li style="--i: 3"><svg class="ico"><use href="#i-invoice" /></svg><span>Invoices</span></li>
+                        <li style="--i: 4"><svg class="ico"><use href="#i-star" /></svg><span>Reviews</span></li>
+                      </ul>
+                <span class="scene__land"></span>
+              </div>
+              <div class="scene__gap">
+                <svg class="scene__bridge world__plan" viewBox="0 0 300 100" preserveAspectRatio="none">
+                  <path class="scene__deck" d="M0 1H300" />
+                    <path class="scene__arch" d="M0 70Q150 -50 300 70" />
+                    <path class="scene__hangers" d="M30 1V48.4M60 1V31.6M90 1V19.6M120 1V12.4M150 1V10M180 1V12.4M210 1V19.6M240 1V31.6M270 1V48.4" />
+                </svg>
+                <svg class="scene__bridge world__built" viewBox="0 0 300 100" preserveAspectRatio="none">
+                  <path class="scene__deck" d="M0 1H300" />
+                    <path class="scene__arch" d="M0 70Q150 -50 300 70" />
+                    <path class="scene__hangers" d="M30 1V48.4M60 1V31.6M90 1V19.6M120 1V12.4M150 1V10M180 1V12.4M210 1V19.6M240 1V31.6M270 1V48.4" />
+                </svg>
+                <div class="world__traffic" data-traffic><i></i><i></i><i></i><i></i></div>
+                <span class="scene__dim"><span data-dim="divide">The divide</span><span data-dim="bridged">Bridged</span></span>
+              </div>
+              <div class="scene__side scene__side--tech">
+                <p class="scene__tag">What exists today</p>
+                <ul class="scene__icons">
+                        <li style="--i: 0"><svg class="ico"><use href="#i-voice" /></svg><span>AI voice</span></li>
+                        <li style="--i: 1"><svg class="ico"><use href="#i-chat" /></svg><span>Assistants</span></li>
+                        <li style="--i: 2"><svg class="ico"><use href="#i-flow" /></svg><span>Automations</span></li>
+                        <li style="--i: 3"><svg class="ico"><use href="#i-bolt" /></svg><span>Instant replies</span></li>
+                        <li style="--i: 4"><svg class="ico"><use href="#i-chip" /></svg><span>AI models</span></li>
+                      </ul>
+                <span class="scene__land"></span>
+              </div>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta" id="contact" aria-labelledby="contact-title" tabindex="-1" data-chapter="06|How we start">
+        <div class="cta__grid wrap">
+          <div class="cta__copy">
+            <h2 class="title" id="contact-title">Let's find what's leaking in your business.</h2>
+            <p class="lede">20 minutes, free, no obligation. You'll leave with ideas you can use either way.</p>
+            <div class="cta__actions">
+              <a class="button" href="https://cal.com/qurra-basil/discovery" target="_blank" rel="noopener" data-book data-loc="contact"><svg class="ico" aria-hidden="true"><use href="#i-calendar" /></svg>Book a time</a>
+            </div>
+            <ul class="direct">
+              <li><span class="direct__label">Based in</span><span>Brampton, Ontario. Working with businesses across Ontario.</span></li>
+            </ul>
+          </div>
+          <form class="form" action="https://api.web3forms.com/submit" method="POST" data-contact-form>
+            <p class="form__intro">Prefer to write? Leave your details and I'll get back to you.</p>
+            <input type="hidden" name="access_key" value="dde6b64a-dad8-4d73-b7f9-895eff8fa8ba" />
+            <input type="hidden" name="subject" value="New enquiry from the bridge page" />
+            <input type="hidden" name="from_name" value="basil-kanaan bridge page" />
+            <input type="hidden" name="redirect" value="https://basil-kanaan.github.io/websites-ai-automation/#sent" />
+            <input type="checkbox" name="botcheck" class="form__botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <div class="form__field">
+              <label for="f-name">Your name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required />
+            </div>
+            <div class="form__field">
+              <label for="f-business">Business</label>
+              <input id="f-business" name="business" type="text" autocomplete="organization" />
+            </div>
+            <div class="form__field">
+              <label for="f-contact">Phone or email</label>
+              <input id="f-contact" name="contact" type="text" autocomplete="email" required />
+            </div>
+            <div class="form__field">
+              <label for="f-message">What takes up most of your week? <span>(optional)</span></label>
+              <textarea id="f-message" name="message" rows="3"></textarea>
+            </div>
+            <div class="form__actions">
+              <button class="button" type="submit" data-submit>Send</button>
+              <p class="form__status" role="status" aria-live="polite" data-status></p>
+            </div>
+            <p class="form__sent" id="sent" tabindex="-1">Thanks, your message was sent. I'll be in touch soon.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot wrap">
+      <p>Basil Kanaan · Brampton, Ontario</p>
+      <p class="foot__contact"><a class="link" href="https://cal.com/qurra-basil/discovery" target="_blank" rel="noopener" data-book data-loc="footer">Book a 20-minute call</a></p>
+      <a class="link" href="#top" data-scroll-to>Back to top</a>
+    </footer>
+  </body>
+</html>

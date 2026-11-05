@@ -1,0 +1,1069 @@
+@import './base.css';
+
+/* ==========================================================================
+   Most chapters hold the screen while scrolling plays them through.
+   Holding (pinning) and the layered stages only exist under html.motion, which
+   the page head adds when motion is welcome. Without JavaScript or with reduced
+   motion, every chapter is laid out as a plain page, in reading order.
+   ========================================================================== */
+html.motion [data-pin] {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  /* Each stage is a fixed-size box, so the browser can skip laying out the ones off screen.
+     That keeps measuring the page cheap while the holds are set up. */
+  content-visibility: auto;
+}
+/* A layer that is not showing takes no clicks. */
+html.motion [data-layer]:not(.is-live) { pointer-events: none; }
+
+/* ==========================================================================
+   01 The divide: the hero's drawing becomes the evidence
+   ========================================================================== */
+html.motion .s1__hero { height: 100%; min-height: 0; }
+html.motion .s1 .hero__title { font-size: min(var(--fs-hero), 10.6svh); }
+html.motion .s1 .hero__lede { font-size: min(var(--fs-lede), 3.3svh); }
+/* Short screens: the hero copy and the drawing under it must both fit while held. */
+@media (min-width: 768px) and (max-height: 760px) {
+  html.motion .s1 .hero { gap: 3svh; padding-top: calc(var(--header-h) + 2.5svh); padding-bottom: 3svh; }
+  html.motion .s1 .hero__title { margin-top: 1.4svh; font-size: min(var(--fs-hero), 8.6svh); }
+  html.motion .s1 .hero__lede { margin-top: 2svh; font-size: min(var(--fs-lede), 2.8svh); }
+  html.motion .s1 .hero__actions { margin-top: 3svh; }
+  html.motion .s1 .scene { --land: min(clamp(56px, 7.5vw, 112px), 11svh); }
+}
+@media (max-width: 767px) and (max-height: 740px) {
+  html.motion .s1 .hero { gap: 2.4svh; padding-top: calc(var(--header-h) + 2svh); padding-bottom: 2svh; }
+  html.motion .s1 .eyebrow { font-size: 0.6875rem; }
+  html.motion .s1 .hero__title { margin-top: 1.2svh; font-size: 2rem; }
+  html.motion .s1 .hero__lede { margin-top: 1.8svh; font-size: 1rem; }
+  html.motion .s1 .hero__actions { margin-top: 2.4svh; gap: 8px; }
+  html.motion .s1 .scene { --land: 52px; }
+}
+
+/* Offsets for the dots that cross are measured against the drawing. */
+.world { position: relative; }
+.world__top { position: relative; }
+.world__now { display: grid; gap: clamp(12px, 2vh, 20px); }
+.world__count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.6svh, 16px);
+}
+html:not(.motion) .world__count { display: none; }
+html.motion .world__count { opacity: 0; }
+/* Drawn over the hero copy, so it must never take its clicks. */
+.world__count { pointer-events: none; text-align: center; }
+.world__tag {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+  white-space: nowrap;
+}
+.scene__side--tech .world__tag { color: var(--brass); }
+/* What the dots count changes from businesses to tasks: the tags swap in place. */
+.world__tags { display: grid; }
+.world__tags > * { grid-area: 1 / 1; }
+html.motion .world__tags > :last-child,
+html.motion .world__slots + .world__slots .world__tag { opacity: 0; }
+/* The AI side has a landing grid for each count, both resting on the bank. */
+.world__count--slots > .world__slots {
+  grid-area: 1 / 1;
+  align-self: end;
+  display: grid;
+  justify-items: center;
+  gap: clamp(8px, 1.6svh, 16px);
+  width: 100%;
+}
+.world__dots {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: clamp(3px, 0.65svh, 7px);
+  width: min(100%, 28svh);
+}
+.world__dots i {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--stone);
+  box-shadow: rgba(217, 138, 114, 0) 0px 0px 0px 1.5px inset;
+}
+.world__dots i { transition: background-color 0.35s var(--ease-p3), box-shadow 0.35s var(--ease-p3), border-radius 0.5s var(--ease-p3); }
+.world__dots i.is-ai { background-color: var(--brass); }
+/* The 20th business is a fifth of one: 19.2%. */
+.world__dots i.is-part { background: linear-gradient(90deg, var(--brass) 20%, var(--hairline) 20%); }
+.world__dots i.is-out { background-color: transparent; box-shadow: var(--loss) 0px 0px 0px 1.5px inset; }
+/* Tasks are drawn square. Those AI could take on are outlined in brass; those it already
+   covers in real use are filled. */
+.world__dots.is-tasks i { border-radius: 22%; }
+.world__dots i.is-could { background-color: transparent; box-shadow: var(--brass) 0px 0px 0px 1.5px inset; }
+.world__dots i.is-used { background-color: var(--brass); box-shadow: var(--brass) 0px 0px 0px 1.5px inset; }
+/* Landing spots on the AI side for the dots that cross. */
+.world__dots--slots i { visibility: hidden; }
+@media (max-width: 767px) {
+  .world__tag { white-space: normal; font-size: 0.6875rem; line-height: 1.25; }
+}
+
+.s1__facts { padding-top: var(--section-pad); }
+html.motion .s1__facts {
+  position: absolute;
+  inset: 0 0 auto;
+  padding-top: calc(var(--header-h) + clamp(14px, 4.5svh, 52px));
+  opacity: 0;
+}
+.s1__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 5vw, 112px);
+}
+.fact__num {
+  font-family: var(--font-display-heavy);
+  font-weight: 620;
+  font-stretch: var(--display-stretch);
+  font-size: min(var(--fs-figure), 13svh);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--brass);
+}
+.fact--loss .fact__num { color: var(--loss); }
+.fact--now .fact__num { color: var(--ink); }
+.fact__text {
+  margin-top: clamp(8px, 1.6svh, 16px);
+  font-family: var(--font-text);
+  font-size: min(var(--fs-lede), 3.2svh);
+  line-height: 1.38;
+  max-width: 21em;
+}
+.s1__facts .source { margin-top: clamp(12px, 2.6svh, 32px); max-width: 72em; }
+/* The 3 things the numbers say, one after another while held. */
+.s1__pane + .s1__pane { margin-top: clamp(56px, 9vh, 104px); }
+html.motion .s1__panes { display: grid; }
+html.motion .s1__panes > * { grid-area: 1 / 1; margin: 0; }
+html.motion .s1__pane:not(:first-child) { opacity: 0; }
+.s1__say {
+  font-family: var(--font-text);
+  font-size: min(var(--fs-statement), 6svh);
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  max-width: 18em;
+  text-wrap: balance;
+}
+.s1__sub {
+  margin-top: clamp(12px, 2.4svh, 28px);
+  font-family: var(--font-text);
+  font-size: min(var(--fs-lede), 3.2svh);
+  line-height: 1.45;
+  color: var(--ash);
+  max-width: 30em;
+}
+@media (max-width: 767px) {
+  .s1__grid { grid-template-columns: 1fr; gap: clamp(10px, 2svh, 20px); }
+  /* In theory against in practice reads best side by side, and it leaves room for the drawing. */
+  [data-layer="reach"] .s1__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; }
+  .fact__num { font-size: min(3.75rem, 7.4svh); }
+  .fact__text { font-size: min(1.0625rem, 2.5svh); }
+  .s1__say { font-size: min(var(--fs-statement), 4.6svh); }
+  .s1__sub { font-size: min(1.0625rem, 2.5svh); }
+}
+/* Short screens: a smaller count, so the figures above it never reach its labels. */
+@media (min-width: 768px) and (max-height: 760px) {
+  html.motion .s1 .world__dots { width: min(100%, 24svh); }
+}
+
+/* ==========================================================================
+   After the numbers: the work every business has in common, and what it gives back
+   ========================================================================== */
+.s2 { padding-top: var(--section-pad); }
+.s2 .readline { margin-top: 0; }
+.s2__a { display: grid; gap: clamp(40px, 7vh, 80px); }
+.s2 .divide__you { margin-top: clamp(56px, 9vh, 104px); }
+.jobs { max-width: 940px; }
+.jobs__title {
+  margin-bottom: clamp(16px, 2.6svh, 28px);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+/* The columns sit flush, so each wire below meets its item at the centre. */
+.jobs__biz,
+.jobs__list { display: grid; text-align: center; }
+.jobs__biz { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.jobs__list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.jobs__biz li,
+.jobs__list li { display: grid; justify-items: center; align-content: start; gap: 8px; padding-inline: 4px; line-height: 1.25; }
+.jobs__biz li { font-size: 0.8125rem; color: var(--ash); }
+.jobs__biz .ico { width: 30px; height: 30px; stroke-width: 1.3; color: var(--ink); }
+.jobs__wires { width: 100%; height: clamp(44px, 9svh, 96px); margin-block: 10px; overflow: visible; }
+.jobs__wires line { stroke: rgb(166 162 154 / 0.3); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.jobs__list li { font-size: 0.875rem; font-weight: 600; }
+.jobs__list .ico { width: 26px; height: 26px; color: var(--brass); }
+/* What the work comes back as, once a share of it is handed over. */
+.jobs__flow { position: relative; }
+.jobs__wires--gain line { stroke: rgb(201 154 107 / 0.5); }
+.jobs__hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  padding: 4px 12px;
+  border: 1px solid var(--brass);
+  border-radius: 999px;
+  background: var(--ground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--brass);
+  white-space: nowrap;
+}
+.jobs__gain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; }
+.jobs__gain li { display: grid; justify-items: center; align-content: start; gap: 6px; padding-inline: 6px; }
+.jobs__gain .ico { width: 26px; height: 26px; color: var(--brass); }
+.jobs__gain b {
+  font-family: var(--font-display-heavy);
+  font-weight: 600;
+  font-stretch: var(--display-stretch);
+  font-size: clamp(1.125rem, 0.9rem + 0.6vw, 1.5rem);
+  line-height: 1.1;
+  color: var(--brass);
+}
+.jobs__gain span { max-width: 15em; font-size: 0.8125rem; line-height: 1.35; color: var(--ash); }
+@media (max-width: 767px) {
+  .jobs__biz li { gap: 6px; font-size: 0.6875rem; }
+  .jobs__biz .ico { width: 24px; height: 24px; }
+  .jobs__list li { gap: 6px; font-size: 0.75rem; }
+  .jobs__list .ico { width: 22px; height: 22px; }
+  .jobs__hub { padding: 3px 10px; font-size: 0.6875rem; }
+  .jobs__gain .ico { width: 22px; height: 22px; }
+  .jobs__gain b { font-size: 1rem; }
+  .jobs__gain span { display: none; }
+}
+
+/* If that's you: the copy, and one owner with an arm for every job. */
+.s2 .divide__you { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: center; gap: clamp(28px, 5vw, 96px); padding-top: 0; border-top: 0; }
+.divide__you-copy { display: grid; gap: 18px; align-content: center; }
+.busy { width: min(100%, 460px); justify-self: center; }
+.busy__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.busy__svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.busy__arm { stroke: var(--ash); stroke-width: 2.5; }
+.busy__svg .busy__body,
+.busy__head { fill: var(--ground); stroke: var(--ink); stroke-width: 2.5; }
+.busy__stress { stroke: var(--loss); stroke-width: 2; }
+.busy__item > circle { fill: var(--raised); stroke: var(--brass); stroke-width: 1.5; }
+.busy__item use { color: var(--ink); fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.busy__badge circle { fill: var(--loss); stroke: none; }
+.busy__badge text { fill: var(--ground); font-size: 11px; font-weight: 700; text-anchor: middle; }
+@media (max-width: 767px) {
+  .s2 .divide__you { grid-template-columns: minmax(0, 1fr); gap: 3svh; }
+  .busy { order: -1; width: min(100%, 34svh); }
+}
+html.motion .s2 { padding-top: 0; }
+html.motion .s2__pin { display: grid; align-content: center; padding-top: var(--header-h); }
+html.motion .s2__pin > * { grid-area: 1 / 1; }
+html.motion .s2__a { gap: clamp(20px, 5svh, 64px); }
+html.motion .s2 .readline { font-size: min(var(--fs-statement), 4.8svh); }
+html.motion .s2 .jobs__wires { height: clamp(28px, 7svh, 88px); }
+html.motion .s2 .divide__you { margin-top: 0; align-self: center; opacity: 0; }
+@media (max-width: 767px) {
+  html.motion .s2 .readline { font-size: min(var(--fs-statement), 3.6svh); }
+  html.motion .s2 .jobs__wires { height: clamp(24px, 5.5svh, 64px); margin-block: 6px; }
+}
+
+/* ==========================================================================
+   02 What AI really is: one line per part of the drawing, the sort, then the army
+   ========================================================================== */
+.s3 { padding-top: var(--section-pad); }
+.s3__line {
+  font-family: var(--font-display-heavy);
+  font-weight: var(--display-weight);
+  font-stretch: var(--display-stretch);
+  font-size: var(--fs-h3);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-width: 13em;
+  text-wrap: balance;
+}
+.s3__line + .s3__line { margin-top: 0.6em; }
+h2.s3__line { font-size: var(--fs-h2); line-height: 0.98; letter-spacing: var(--heading-track); }
+.s3__stage { display: grid; gap: clamp(48px, 8vh, 88px); margin-top: clamp(48px, 8vh, 88px); }
+.s3 .sort { margin-top: 0; }
+@media (min-width: 1024px) {
+  .s3__pin {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(40px, 5vw, 96px);
+    align-items: center;
+  }
+  .s3__stage { margin-top: 0; }
+  .s3__pin > .army { grid-column: 1 / -1; }
+}
+/* Narrow and deep, against broad and adaptable. Outside its slice, AI guesses. */
+.reach { position: relative; padding-top: 8px; }
+.reach__svg { width: 100%; height: auto; overflow: visible; }
+.reach__svg path { stroke-linecap: round; stroke-linejoin: round; }
+.reach__base { fill: none; stroke: var(--control); stroke-width: 1.5; }
+.reach__people { fill: rgb(236 234 229 / 0.05); stroke: var(--ink); stroke-width: 2; }
+.reach__ai { fill: var(--brass-soft); stroke: var(--brass); stroke-width: 2.5; }
+.reach__guesses text {
+  font-family: var(--font-display-heavy);
+  font-size: 24px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: var(--brass);
+}
+.reach__label { position: absolute; max-width: 13em; font-size: 0.875rem; line-height: 1.35; color: var(--ash); }
+.reach__label b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.reach__label--ai { left: 47.5%; top: 4%; }
+.reach__label--ai b,
+.reach__label--guess b { color: var(--brass); }
+.reach__label--people { right: 0; top: 33%; text-align: right; }
+.reach__label--people b { color: var(--ink); }
+.reach__label--guess { left: 0; top: 10%; }
+.reach__label--guess b::before { content: '?'; margin-right: 8px; font-weight: 700; }
+.reach__axis { margin-top: 10px; text-align: center; font-size: 0.75rem; color: var(--stone); }
+/* Narrower than the 2 columns, the labels would sit on the curves: they become a key. */
+@media (max-width: 1023px) {
+  .reach { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
+  .reach__svg,
+  .reach__axis { grid-column: 1 / -1; }
+  .reach__label { position: static; grid-row: 3; max-width: none; margin-top: 16px; font-size: 0.8125rem; text-align: left; }
+  .reach__label--people { grid-column: 1; }
+  .reach__label--ai { grid-column: 2; }
+  .reach__label--guess { grid-column: 1 / -1; grid-row: 4; margin-top: 12px; }
+  .reach__label:not(.reach__label--guess) b::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+    background: currentColor;
+  }
+}
+.sort__sub { margin: -4px 0 14px; font-size: 0.8125rem; line-height: 1.35; color: var(--stone); }
+/* The person's side is drawn in ink, like the people in the chart: not a warning colour. */
+.s3 .sort__col--weak .sort__head .ico { color: var(--ink); }
+.s3 .sort__col--weak .card::before { background: var(--ink); }
+
+/* What the sort adds up to: one person in front, a formation of AI behind. The back
+   ranks are smaller and fainter, so it reads with depth. */
+.army {
+  --unit: clamp(30px, 5.4svh, 46px);
+  display: grid;
+  justify-items: center;
+  gap: clamp(16px, 3svh, 36px);
+  margin-top: clamp(64px, 10vh, 120px);
+  text-align: center;
+}
+.army__line {
+  font-family: var(--font-display-heavy);
+  font-weight: var(--display-weight);
+  font-stretch: var(--display-stretch);
+  font-size: var(--fs-h2);
+  line-height: 0.98;
+  letter-spacing: var(--heading-track);
+  max-width: 14em;
+  text-wrap: balance;
+}
+.army__text {
+  max-width: 34em;
+  font-family: var(--font-text);
+  font-size: var(--fs-lede);
+  line-height: 1.45;
+  color: var(--ash);
+  text-wrap: balance;
+}
+.army__figure,
+.army__ranks { display: grid; justify-items: center; gap: clamp(6px, 1.2svh, 12px); }
+.army__rank { display: flex; gap: clamp(8px, 1.4vw, 16px); }
+.army__rank i {
+  display: grid;
+  place-items: center;
+  width: calc(var(--unit) * var(--s, 1));
+  height: calc(var(--unit) * var(--s, 1));
+  border: 1.5px solid var(--brass);
+  border-radius: 50%;
+  color: var(--brass);
+}
+.army__rank i .ico { width: 52%; height: 52%; }
+.army__rank:nth-child(1) { --s: 0.76; opacity: 0.5; }
+.army__rank:nth-child(2) { --s: 0.88; opacity: 0.75; }
+.army__lead {
+  display: grid;
+  place-items: center;
+  width: calc(var(--unit) * 1.6);
+  height: calc(var(--unit) * 1.6);
+  margin-top: 4px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--raised);
+  color: var(--ink);
+}
+.army__lead .ico { width: 56%; height: 56%; }
+.army__tag {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.army__tag--ai { color: var(--brass); }
+
+html.motion .s3 { padding-top: 0; }
+html.motion .s3__pin { padding-top: calc(var(--header-h) + 2svh); padding-bottom: 2svh; align-content: center; }
+html.motion .s3__swap,
+html.motion .s3__stage { display: grid; margin: 0; }
+html.motion .s3__swap > *,
+html.motion .s3__stage > * { grid-area: 1 / 1; margin: 0; }
+html.motion .s3__stage { align-items: center; }
+html.motion .s3__swap > :not(:first-child),
+html.motion .s3 .sort { opacity: 0; }
+html.motion .s3 .s3__line { font-size: min(clamp(2rem, 1.2rem + 2.2vw, 3.5rem), 6.4svh); }
+html.motion .s3 h2.s3__line { font-size: min(var(--fs-h2), 8svh); }
+html.motion .s3 .card { padding-block: min(16px, 1.7svh); }
+/* The army takes the whole stage once the sort is done. */
+html.motion .s3 .army {
+  position: absolute;
+  inset: var(--header-h) var(--margin) 0;
+  align-content: center;
+  margin: 0;
+  opacity: 0;
+}
+html.motion .s3 .army__line { font-size: min(var(--fs-h2), 7.4svh); }
+html.motion .s3 .army__text { font-size: min(var(--fs-lede), 2.8svh); }
+@media (max-width: 1023px) {
+  html.motion .s3__pin { display: flex; flex-direction: column; justify-content: center; gap: clamp(14px, 2.6svh, 32px); }
+  html.motion .s3 .kicker { margin-bottom: 1.6svh; }
+  html.motion .s3 .s3__line { font-size: min(var(--fs-h3), 4.4svh); }
+  html.motion .s3 h2.s3__line { font-size: min(var(--fs-h2), 5.2svh); }
+  html.motion .s3 .reach { width: min(100%, 52svh); justify-self: center; }
+  html.motion .s3 .sort { grid-template-columns: minmax(0, 1fr); }
+  html.motion .s3 .sort__col { grid-area: 1 / 1; }
+  html.motion .s3 .sort__head { padding-bottom: 8px; margin-bottom: 8px; }
+  html.motion .s3 .sort__sub { margin-bottom: 10px; }
+  html.motion .s3 .sort__list { gap: min(8px, 1svh); }
+  html.motion .s3 .card { padding: min(12px, 1.4svh) 14px min(12px, 1.4svh) 38px; font-size: 0.9375rem; }
+  html.motion .s3 .card::before { left: 14px; }
+  html.motion .s3 .army__line { font-size: min(var(--fs-h2), 5.2svh); }
+  html.motion .s3 .army__text { font-size: min(var(--fs-lede), 2.4svh); }
+}
+
+/* ==========================================================================
+   03 Who's building it: why AI needs testing, shown as an agent's run
+   ========================================================================== */
+.xp { padding-top: var(--section-pad); }
+.xp__pin {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(40px, 5vw, 96px);
+  align-items: center;
+}
+.xp__line {
+  font-family: var(--font-display-heavy);
+  font-weight: var(--display-weight);
+  font-stretch: var(--display-stretch);
+  font-size: var(--fs-h3);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-width: 13em;
+  text-wrap: balance;
+}
+.xp__line + .xp__line { margin-top: 0.6em; }
+h2.xp__line { font-size: var(--fs-h2); line-height: 0.98; letter-spacing: var(--heading-track); }
+.xp__sub {
+  margin-top: 16px;
+  max-width: 26em;
+  font-family: var(--font-text);
+  font-size: var(--fs-lede);
+  font-weight: 400;
+  font-stretch: 100%;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--ash);
+}
+@media (max-width: 1023px) {
+  .xp__pin { grid-template-columns: minmax(0, 1fr); }
+}
+.ui--trace { font-size: 0.875rem; }
+.trace__task {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-text);
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.trace__task span,
+.trace__out-head span {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.trace__run { position: relative; }
+.trace__steps li {
+  display: grid;
+  grid-template-columns: 6.4em minmax(0, 1fr) 20px;
+  column-gap: 12px;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hairline);
+  transition: background-color 0.5s var(--ease-p3), box-shadow 0.5s var(--ease-p3);
+}
+.trace__app { grid-area: 1 / 1; font-size: 0.75rem; font-weight: 600; color: var(--stone); }
+.trace__do { grid-area: 1 / 2; display: grid; color: var(--ink); }
+.trace__do > span { grid-area: 1 / 1; transition: opacity 0.45s var(--ease-p3); }
+.trace__do > span + span { opacity: 0; }
+.trace__mark { grid-area: 1 / 3; display: grid; }
+.trace__mark .ico { grid-area: 1 / 1; width: 18px; height: 18px; color: var(--ash); transition: opacity 0.35s var(--ease-p3); }
+[data-fail] .trace__mark .ico { color: var(--loss); }
+[data-fail] .trace__mark .ico + .ico { opacity: 0; color: var(--brass); }
+/* Why a step failed, under its action. It keeps its space while hidden, so nothing moves. */
+.trace__why {
+  grid-area: 2 / 2;
+  justify-self: start;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--loss-soft);
+  color: var(--loss);
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-p3);
+}
+.ui--trace [data-fail] { background: rgb(217 138 114 / 0.06); }
+.trace__steps .is-why .trace__why,
+html:not(.motion) .trace__why { opacity: 1; }
+/* Testing: one pass down the run, marking the steps it catches. */
+.trace__scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--brass);
+  box-shadow: 0 0 14px 2px rgb(201 154 107 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+}
+.ui--trace.is-test [data-fail] { box-shadow: inset 3px 0 0 var(--loss); }
+/* What the run sends: the message, and what's wrong with it, or that you approved it. */
+.trace__out { display: grid; gap: 8px; padding: 12px 16px 14px; }
+.trace__out-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.trace__out-head span { margin: 0; }
+.trace__out-head b { font-weight: 600; color: var(--loss); transition: color 0.45s var(--ease-p3); }
+.trace__msg,
+.trace__flags { display: grid; }
+.trace__msg { font-family: var(--font-text); font-size: 1rem; line-height: 1.35; color: var(--ink); }
+.trace__msg > span,
+.trace__flags > span { grid-area: 1 / 1; transition: opacity 0.45s var(--ease-p3); }
+.trace__msg > span + span,
+.trace__flags > span + span { opacity: 0; }
+.trace__flags > span { display: flex; flex-wrap: wrap; gap: 6px; }
+.trace__flags em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--loss-soft);
+  color: var(--loss);
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-weight: 600;
+}
+.trace__ok em { background: var(--brass-soft); color: var(--brass); }
+.trace__ok .ico { width: 12px; height: 12px; }
+/* The golden run: the steps that failed, redone right, and a message you approved. */
+.ui--trace.is-gold [data-fail] { background: rgb(201 154 107 / 0.07); box-shadow: none; }
+.ui--trace.is-gold [data-fail] .trace__do > span:first-child,
+.ui--trace.is-gold [data-fail] .trace__mark .ico:first-child,
+.ui--trace.is-gold .trace__msg > span:first-child,
+.ui--trace.is-gold .trace__flags > span:first-child { opacity: 0; }
+.ui--trace.is-gold [data-fail] .trace__do > span + span,
+.ui--trace.is-gold [data-fail] .trace__mark .ico + .ico,
+.ui--trace.is-gold .trace__msg > span + span,
+.ui--trace.is-gold .trace__flags > span + span { opacity: 1; }
+.ui--trace.is-gold .trace__out-head b { color: var(--brass); }
+@media (max-width: 767px) {
+  .trace__task { padding: 10px 12px; font-size: 0.875rem; }
+  .trace__steps li { grid-template-columns: minmax(0, 1fr) 18px; row-gap: 2px; padding: 8px 12px; }
+  .trace__app { grid-area: 1 / 1; font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; }
+  .trace__do { grid-area: 2 / 1; font-size: 0.8125rem; line-height: 1.3; }
+  .trace__mark { grid-area: 1 / 2 / 3 / 3; }
+  .trace__why { grid-area: 1 / 1; justify-self: end; margin-top: 0; padding: 1px 6px; font-size: 0.625rem; }
+  .trace__out { gap: 6px; padding: 8px 12px 10px; }
+  .trace__out-head b { font-size: 0.75rem; }
+  .trace__msg { font-size: 0.875rem; line-height: 1.3; }
+  .trace__flags em { padding: 1px 6px; font-size: 0.625rem; }
+}
+html.motion .xp { padding-top: 0; }
+html.motion .xp__pin { padding-top: calc(var(--header-h) + 2svh); padding-bottom: 2svh; align-content: center; }
+html.motion .xp__swap { display: grid; }
+html.motion .xp__swap > * { grid-area: 1 / 1; margin: 0; }
+html.motion .xp__swap > :not(:first-child),
+html.motion .trace__out { opacity: 0; }
+html.motion .xp .xp__line { font-size: min(clamp(2rem, 1.2rem + 2.2vw, 3.5rem), 6.4svh); }
+html.motion .xp h2.xp__line { font-size: min(var(--fs-h2), 7.4svh); }
+html.motion .xp .xp__sub { font-size: min(var(--fs-lede), 2.6svh); }
+@media (max-width: 1023px) {
+  html.motion .xp__pin {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(12px, 2.4svh, 28px);
+    padding-top: calc(var(--header-h) + 1.5svh);
+  }
+  html.motion .xp .kicker { margin-bottom: 1.2svh; }
+  html.motion .xp .xp__line { font-size: min(var(--fs-h3), 3.6svh); }
+  html.motion .xp h2.xp__line { font-size: min(var(--fs-h2), 4.6svh); }
+  html.motion .xp .xp__sub { margin-top: 1svh; font-size: min(var(--fs-lede), 2.2svh); }
+}
+/* Short phones: the header already names the chapter, so its kicker goes, and the run tightens. */
+@media (max-width: 1023px) and (max-height: 760px) {
+  html.motion .xp .kicker { display: none; }
+  html.motion .xp h2.xp__line { font-size: min(var(--fs-h2), 4.2svh); }
+  html.motion .trace__task span { display: inline; margin: 0 6px 0 0; }
+  html.motion .trace__steps li { padding-block: 6px; }
+}
+
+/* ==========================================================================
+   03 Who's building it: the network, wired one layer per credential
+   ========================================================================== */
+.s4 { padding-top: var(--section-pad); }
+.s4__pin {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: clamp(40px, 6vw, 112px);
+  align-items: center;
+}
+@media (max-width: 1023px) {
+  .s4__pin { grid-template-columns: minmax(0, 1fr); }
+}
+html.motion .s4 { padding-top: 0; }
+html.motion .s4__pin { padding-top: calc(var(--header-h) + 2svh); padding-bottom: 2svh; align-content: center; }
+html.motion .s4 .title { font-size: min(var(--fs-h2), 8svh); }
+html.motion .s4 .spec { margin-top: clamp(16px, 3.4svh, 56px); }
+html.motion .s4 .spec__row { padding-block: min(16px, 1.8svh); }
+html.motion .s4 .net__caption { margin-top: clamp(36px, 6svh, 52px); }
+@media (max-width: 1023px) {
+  html.motion .s4__pin { display: flex; flex-direction: column; justify-content: center; gap: 0; }
+  html.motion .s4__copy { display: contents; }
+  html.motion .s4 .title { font-size: min(var(--fs-h2), 5.4svh); }
+  html.motion .s4 .net { order: 2; margin-top: 2.4svh; }
+  html.motion .s4 .net__frame { width: min(100%, 40svh); }
+  html.motion .s4 .net__caption { margin-top: 30px; font-size: 0.875rem; }
+  html.motion .s4 .spec { order: 3; margin-top: 2.4svh; }
+  html.motion .s4 .spec__row { grid-template-columns: 6.6em minmax(0, 1fr); gap: 12px; padding-block: 1svh; font-size: min(0.9375rem, 2.2svh); }
+}
+@media (max-width: 1023px) {
+  /* Room for the layer names, which hang below the drawing. */
+  html.motion .s4 .spec { margin-top: calc(2.4svh + 20px); }
+}
+@media (max-width: 1023px) and (max-height: 760px) {
+  html.motion .s4 .net__caption { display: none; }
+  html.motion .s4 .net__frame { width: min(100%, 36svh); }
+}
+
+/* ==========================================================================
+   03 One person, the output of a team: the systems slide past sideways
+   ========================================================================== */
+.s5 { padding-top: var(--section-pad); }
+.s5__track {
+  display: grid;
+  gap: clamp(72px, 13vh, 152px);
+  margin-top: clamp(56px, 9vh, 104px);
+}
+.s5__track > .s5__panel { padding-inline: var(--margin); }
+.s5__panel--end .army__close { margin-top: 0; }
+html.motion .s5 { padding-top: 0; }
+html.motion .s5__pin {
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--header-h) + clamp(12px, 3.6svh, 44px));
+}
+html.motion .s5 .title { font-size: min(var(--fs-h2), 7.4svh); max-width: none; }
+html.motion .s5__head .lede { margin-top: 1.2svh; font-size: min(var(--fs-lede), 2.6svh); }
+/* Centred, unless a system is taller than the space: then it starts under the title. */
+html.motion .s5__viewport { flex: 1; min-height: 0; display: flex; align-items: safe center; }
+html.motion .s5__track { display: flex; width: 100%; gap: 0; margin: 0; }
+html.motion .s5__track > .s5__panel {
+  flex: 0 0 100%;
+  padding-inline: max(var(--margin), calc((100% - var(--maxw)) / 2));
+}
+html.motion .s5__panel.system { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); }
+html.motion .s5__panel.system:nth-child(even) .system__text { order: 0; }
+html.motion .s5__panel--end { display: flex; align-items: center; }
+html.motion .s5 .army__close { max-width: 15em; font-size: min(var(--fs-statement), 6svh); }
+/* The mockup window grows with its width; on short screens it is narrowed to fit. */
+@media (min-width: 900px) {
+  html.motion .s5 .ui--mockup { width: 100%; max-width: calc((100svh - var(--header-h) - 300px) * 1.75); justify-self: center; }
+}
+@media (max-width: 899px) {
+  html.motion .s5__panel.system { grid-template-columns: minmax(0, 1fr); gap: clamp(14px, 2.6svh, 28px); align-content: center; }
+  html.motion .s5 .title { font-size: min(var(--fs-h2), 5svh); }
+  html.motion .s5 .system__title { font-size: min(var(--fs-h3), 3.8svh); margin-top: 8px; }
+  html.motion .s5 .system__line { margin-top: 8px; font-size: 0.9375rem; }
+}
+@media (max-width: 899px) and (max-height: 760px) {
+  html.motion .s5__head .lede { display: none; }
+  html.motion .s5 .title { font-size: min(var(--fs-h2), 4.4svh); }
+  html.motion .s5__viewport { padding-top: 1.6svh; }
+  html.motion .s5 .system__meta { display: none; }
+  html.motion .s5 .system__title { margin-top: 0; }
+  html.motion .s5 .system__line { font-size: 0.875rem; line-height: 1.45; }
+}
+/* The dialer's research panel: the lead's website and CRM notes, opened as it dials. */
+.dialer__lead {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 14px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline);
+  transition: opacity 0.3s var(--ease-p3);
+}
+.dialer__lead.is-loading { opacity: 0.35; }
+.dialer__site { overflow: hidden; height: 96px; border: 1px solid var(--hairline); border-radius: 6px; background: #ebe6dc; }
+.dialer__url { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #23211e; color: var(--stone); font-size: 0.6875rem; }
+.dialer__url .ico { width: 12px; height: 12px; }
+.dialer__site .mockup__site { gap: 4px; padding: 6px; }
+.dialer__site .mockup__site b { height: 26px; background: var(--site, #2c3a33); transition: background-color 0.4s; }
+.dialer__site .mockup__site span { height: 14px; }
+.dialer__facts { display: grid; gap: 7px; align-content: center; }
+.dialer__facts div { display: flex; justify-content: space-between; gap: 10px; }
+.dialer__facts dt { color: var(--stone); }
+.dialer__facts dd { color: var(--ink); text-align: right; }
+@media (max-width: 767px) {
+  .dialer__now { gap: 10px; padding: 12px; }
+  .dialer__ring { width: 38px; height: 38px; }
+  .dialer__lead { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); gap: 10px; padding: 8px 12px; }
+  .dialer__site { height: 64px; }
+  .dialer__facts { gap: 4px; font-size: 0.75rem; }
+  .dialer__script { gap: 6px; margin: 10px 12px 0; padding: 10px 12px; }
+  .dialer__outcomes { gap: 6px; padding: 10px 12px 6px; }
+  .dialer__outcomes span { padding: 5px 10px; }
+  .dialer__logged { padding: 2px 12px 10px; }
+}
+
+/* ==========================================================================
+   04 Where you're losing: each leak with an example, then its fix
+   ========================================================================== */
+.s6 { padding-top: var(--section-pad); }
+.s6__layer {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 5vw, 96px);
+  align-items: center;
+}
+.s6__leaks { display: grid; gap: clamp(64px, 11vh, 120px); margin-block: clamp(64px, 11vh, 120px); }
+.s6__track,
+html:not(.motion) .s6__close .leakmap { display: none; }
+@media (max-width: 1023px) {
+  .s6__layer { grid-template-columns: minmax(0, 1fr); }
+}
+/* The 6 leaks at a glance: leaking at the start, fixed at the end. */
+.leakmap { border-top: 1px solid var(--hairline); }
+.leakmap li {
+  display: grid;
+  grid-template-columns: 2.2em minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: min(14px, 1.7svh) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.leakmap b { font-size: var(--fs-label); font-weight: 600; color: var(--stone); font-variant-numeric: tabular-nums; }
+.leakmap span { font-weight: 600; }
+.leakmap em { font-size: 0.875rem; font-style: normal; font-weight: 600; text-align: right; }
+.leakmap em i { font-style: normal; color: var(--loss); }
+.leakmap em i + i,
+.leakmap.is-fixed em i:first-child { display: none; }
+.leakmap.is-fixed em i + i { display: inline; color: var(--brass); }
+.leakmap.is-fixed b { color: var(--brass); }
+/* An example per leak: the people or money it costs, then the same scene, fixed. */
+.vig {
+  display: grid;
+  gap: clamp(14px, 2.4svh, 24px);
+  padding: clamp(18px, 3svh, 32px);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--raised);
+}
+.vig__scene { font-family: var(--font-text); font-size: var(--fs-lede); line-height: 1.35; }
+.vig__scene span {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+/* Everyone starts in the top lane. Whoever slips through drops below the line, which says
+   what happened to them. */
+.vig__lanes {
+  --tok: clamp(30px, 2.9vw, 40px);
+  --tok-h: calc(var(--tok) + 18px);
+  --line: calc(var(--tok-h) + 14px);
+  --drop: calc(var(--line) + 18px);
+  position: relative;
+  padding-bottom: var(--drop);
+}
+.vig__row { display: flex; gap: clamp(8px, 1.4vw, 18px); }
+.tok {
+  --c: var(--ash);
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--tok) auto;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  height: var(--tok-h);
+  color: var(--c);
+  font-style: normal;
+  transition: transform 0.6s var(--ease-p3), color 0.4s var(--ease-p3);
+  transition-delay: calc(var(--i) * 45ms);
+}
+.tok .ico { width: var(--tok); height: var(--tok); stroke-width: 1.3; }
+.tok small { font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tok[data-done] { --c: var(--brass); }
+.tok[data-done] .ico { fill: currentColor; }
+/* A cross on each one that slipped through, drawn as 2 strokes on a loss-coloured dot. */
+.tok::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background:
+    linear-gradient(45deg, transparent 42%, var(--raised) 42% 58%, transparent 58%) center / 8px 8px no-repeat,
+    linear-gradient(-45deg, transparent 42%, var(--raised) 42% 58%, transparent 58%) center / 8px 8px no-repeat,
+    var(--loss);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.3s var(--ease-p3), transform 0.3s var(--ease-p3);
+  transition-delay: calc(var(--i) * 45ms + 0.3s);
+}
+.vig__drop {
+  position: absolute;
+  inset-inline: 0;
+  top: var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateY(-50%);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--loss);
+  transition: opacity 0.4s var(--ease-p3);
+}
+.vig__drop::before { content: ''; flex: 1; border-top: 1px dashed; opacity: 0.55; }
+/* Slipped through: below the line, crossed out, in the loss colour. */
+html:not(.motion) .vig .tok[data-lost],
+.vig.is-leak .tok[data-lost] { --c: var(--loss); transform: translateY(var(--drop)); }
+html:not(.motion) .vig .tok[data-lost]::after,
+.vig.is-leak .tok[data-lost]::after { opacity: 1; transform: none; }
+/* Fixed: everyone is back in the row and handled, in brass. */
+.vig.is-fixed .tok,
+.vig.is-fixed .tok[data-lost] { --c: var(--brass); transform: none; }
+.vig.is-fixed .tok[data-lost]::after { opacity: 0; transform: scale(0.4); transition-delay: 0s; }
+.vig.is-fixed .vig__drop { opacity: 0.3; }
+/* The count, without the fix and with it: side by side, or one at a time while held. */
+.vig__out {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px clamp(16px, 3vw, 40px);
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--ash);
+}
+.vig__out small {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.vig__out b {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display-heavy);
+  font-weight: var(--display-weight);
+  font-stretch: var(--display-stretch);
+  font-size: clamp(2rem, 1.4rem + 1.6vw, 3rem);
+  line-height: 1;
+  letter-spacing: var(--heading-track);
+  font-variant-numeric: tabular-nums;
+}
+.vig__lost b { color: var(--loss); }
+.vig__kept b { color: var(--brass); }
+html.motion .vig__out { grid-template-columns: minmax(0, 1fr); }
+html.motion .vig__out > span { grid-area: 1 / 1; transition: opacity 0.4s var(--ease-p3); }
+html.motion .vig:not(.is-leak) .vig__lost,
+html.motion .vig:not(.is-fixed) .vig__kept,
+html.motion .vig.is-fixed .vig__lost { opacity: 0; }
+html.motion .s6 { padding-top: 0; }
+html.motion .s6__pin {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding-top: calc(var(--header-h) + 3svh);
+  padding-bottom: 3svh;
+}
+html.motion .s6__track {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--ash);
+}
+.s6__ticks { display: flex; gap: 4px; }
+.s6__ticks i { width: 18px; height: 4px; border-radius: 2px; background: var(--loss); opacity: 0.45; transition: background-color 0.4s, opacity 0.4s; }
+.s6__ticks i.is-on { background: var(--brass); opacity: 1; }
+.s6__track b { color: var(--brass); font-variant-numeric: tabular-nums; }
+html.motion .s6__pin > .s6__layer,
+html.motion .s6__leaks { grid-row: 2; grid-column: 1; align-self: center; margin: 0; }
+html.motion .s6__leaks { gap: 0; }
+html.motion .s6__leaks > * { grid-area: 1 / 1; }
+html.motion .s6 [data-step],
+html.motion .s6 [data-fix] { opacity: 0; }
+html.motion .s6 .title { font-size: min(var(--fs-h2), 7.6svh); }
+html.motion .s6 .leaks__close { margin: 0; font-size: min(var(--fs-statement), 5svh); }
+html.motion .s6 .leak__title { font-size: min(clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem), 5.4svh); }
+html.motion .s6 .leak__why { font-size: min(var(--fs-lede), 2.8svh); }
+html.motion .s6 .leak__fix { margin-top: min(22px, 2.6svh); padding-top: min(18px, 2.2svh); }
+html.motion .s6 .vig__scene { font-size: min(var(--fs-lede), 2.8svh); }
+@media (max-width: 1023px) {
+  html.motion .s6__pin { padding-top: calc(var(--header-h) + 2svh); padding-bottom: 2svh; }
+  html.motion .s6__track { justify-content: flex-start; }
+  html.motion .s6__layer { gap: clamp(12px, 2.4svh, 28px); align-content: center; }
+  html.motion .s6 .vig { order: -1; gap: 1.6svh; padding: 2svh 16px; }
+  html.motion .s6 .title { font-size: min(var(--fs-h2), 5.2svh); }
+  html.motion .s6 .leak__title { font-size: min(1.75rem, 4svh); }
+  html.motion .s6 .leak__why { margin-top: 1svh; font-size: min(var(--fs-lede), 2.4svh); }
+  html.motion .s6 .leak__fix { font-size: min(1rem, 2.3svh); }
+  html.motion .s6 .vig__scene { font-size: min(var(--fs-lede), 2.4svh); }
+  html.motion .s6 .vig__out { font-size: min(1rem, 2.3svh); }
+  html.motion .s6 .vig__out b { font-size: min(2.25rem, 4.6svh); }
+}
+@media (max-width: 767px) {
+  .vig__lanes { --tok: min(26px, 4svh); --tok-h: calc(var(--tok) + 14px); --line: calc(var(--tok-h) + 10px); }
+  .vig__row { gap: 4px; }
+  .tok small { font-size: 0.625rem; }
+  .tok::after { top: -3px; right: -4px; width: 13px; height: 13px; }
+}
+
+/* ==========================================================================
+   06 How we start: the 4 steps build the bridge
+   ========================================================================== */
+.s8 { padding-top: var(--section-pad); }
+.s8__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gutter);
+  margin-top: clamp(32px, 6vh, 64px);
+}
+.s8__world { margin-top: clamp(40px, 8vh, 96px); }
+@media (max-width: 899px) {
+  .s8__steps { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+}
+.world--build .world__plan path { stroke: var(--stone); stroke-width: 1; stroke-dasharray: 5 5; }
+.world--build .world__plan .scene__hangers { opacity: 0.55; }
+.world--build .world__built path { stroke: var(--brass); stroke-width: 1.5; }
+.world--build .world__built .scene__deck { stroke-width: 4; }
+.world__traffic { position: absolute; top: 0; left: 0; right: 0; height: 0; }
+.world__traffic i {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0;
+}
+.world--build [data-dim='bridged'] { color: var(--brass); }
+.world--build .scene__icons .ico,
+.world--build .scene__dim,
+.world--build .scene__dim::before,
+.world--build .scene__dim::after { transition: color 0.6s var(--ease-p3), background-color 0.6s var(--ease-p3); }
+/* Built: the business side lights up like the side it is now connected to. Without
+   motion the drawing is shown built from the start. */
+:is(html:not(.motion) .world--build, .world--build.is-bridged) .scene__side--biz .ico { color: var(--brass); }
+:is(html:not(.motion) .world--build, .world--build.is-bridged) .scene__dim,
+:is(html:not(.motion) .world--build, .world--build.is-bridged) .scene__dim::before,
+:is(html:not(.motion) .world--build, .world--build.is-bridged) .scene__dim::after { background-color: var(--brass); }
+html:not(.motion) .world--build .world__plan,
+html:not(.motion) .world--build [data-dim='divide'] { opacity: 0; }
+html.motion .world--build [data-dim] { opacity: 0; }
+html.motion .s8 { padding-top: 0; }
+html.motion .s8__pin {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(20px, 5svh, 64px);
+  padding-top: var(--header-h);
+}
+html.motion .s8 .title { font-size: min(var(--fs-h2), 7.6svh); }
+html.motion .s8__steps,
+html.motion .s8__world { margin-top: 0; }
+html.motion .s8__step { opacity: 0; }
+@media (max-width: 899px) {
+  html.motion .s8__steps { grid-template-columns: minmax(0, 1fr); }
+  html.motion .s8__step { grid-area: 1 / 1; }
+  html.motion .s8 .title { font-size: min(var(--fs-h2), 5.4svh); }
+}
+
+/* ==========================================================================
+   01 The divide, online: the opening with ?for=web
+   ========================================================================== */
+.web, .v-web { display: none; }
+html.for-web .web { display: block; }
+html.for-web .v-web { display: inline; }
+html.for-web .v-default { display: none; }
+.web__inner {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(var(--header-h) + clamp(20px, 5vh, 56px));
+  padding-bottom: clamp(32px, 6vh, 72px);
+}
+.web__title { max-width: 12em; }
+.web__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 5vw, 112px);
+  max-width: 980px;
+  margin-top: clamp(28px, 5vh, 56px);
+}
+.web .source { margin-top: clamp(14px, 2.4vh, 24px); }
+.web__lede { margin-top: clamp(24px, 4vh, 40px); }
